@@ -193,26 +193,17 @@ func installFrameworks(projectDir string) error {
 
 // installTailwind -> Try to install tailwindcss from nodefirst.
 func installTailwind(projectDir string) error {
-	if _, err := os.Stat(filepath.Join(projectDir, "node_modules")); os.IsNotExist(err) {
-		return runner.RunCommand("npm", "install", "tailwind@latest", "--force")
-	}
-	return nil
+	return runner.RunCommand("npm", "install", "tailwind@latest", "--force")
 }
 
 // installBootstrap -> Try to install bootstrap from node first.
 func installBootstrap(projectDir string) error {
-	if _, err := os.Stat(filepath.Join(projectDir, "node_modules")); os.IsNotExist(err) {
-		return runner.RunCommand("npm", "install", "bootstrap@latest", "--force")
-	}
-	return nil
+	return runner.RunCommand("npm", "install", "bootstrap@latest", "--force")
 }
 
 // installHtmx -> Try to install htmx from node first.
 func installHtmx(projectDir string) error {
-	if _, err := os.Stat(filepath.Join(projectDir, "node_modules")); os.IsNotExist(err) {
-		return runner.RunCommand("npm", "install", "htmx.org@latest", "--save", "--force")
-	}
-	return nil
+	return runner.RunCommand("npm", "install", "htmx.org@latest", "--save", "--force")
 }
 
 // installAir -> install the air watcher framework.

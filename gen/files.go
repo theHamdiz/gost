@@ -7,11 +7,12 @@ import (
 	"strings"
 
 	"github.com/theHamdiz/gost/cleaner"
+    "github.com/theHamdiz/gost/parser"
 )
 
-func FilesMap() map[string]func(data TemplateData) string {
-	return map[string]func(data TemplateData) string{
-		"cmd/app/main.go": func(data TemplateData) string {
+func FilesMap() map[string]func() string {
+	return map[string]func() string{
+		"cmd/app/main.go": func() string {
 			return `package main
 
 import (
@@ -85,7 +86,7 @@ func main() {
 }
 `
 		},
-		"app/services/logger.go": func(data TemplateData) string {
+		"app/services/logger.go": func() string {
 			return `package services
 
 import (
@@ -112,7 +113,7 @@ func Error(message string) {
 }
 `
 		},
-		"app/services/rateLimiter.go": func(data TemplateData) string {
+		"app/services/rateLimiter.go": func() string {
 			return `package services
 
 import (
@@ -130,7 +131,7 @@ func Allow() bool {
 }
 `
 		},
-		"app/services/db.go": func(data TemplateData) string {
+		"app/services/db.go": func() string {
 			return `package db
 
 import (
@@ -162,7 +163,7 @@ func CloseDB() {
 }
 `
 		},
-		"app/cfg/config.go": func(data TemplateData) string {
+		"app/cfg/config.go": func() string {
 			return `package cfg
 
 	import (
@@ -224,7 +225,7 @@ func LoadFromEnv() *Config {
 }
 `
 		},
-		"app/router/router.go": func(data TemplateData) string {
+		"app/router/router.go": func() string {
 			return `package router
 
 import (
@@ -248,7 +249,7 @@ func InitRoutes() *{{.BackendPkg}}.Mux {
 }
 `
 		},
-		"app/handlers/handlers.go": func(data TemplateData) string {
+		"app/handlers/handlers.go": func() string {
 			return `package handlers
 
 import (
@@ -272,7 +273,7 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 }
 `
 		},
-		"app/db/db.go": func(data TemplateData) string {
+		"app/db/db.go": func() string {
 			return `package db
 
 import (
@@ -303,7 +304,7 @@ func init() {
 }
 `
 		},
-		"app/middleware/auth.go": func(data TemplateData) string {
+		"app/middleware/auth.go": func() string {
 			return `package middleware
 
 import (
@@ -325,7 +326,7 @@ func Auth(next http.Handler) http.Handler {
 }
 `
 		},
-		"app/middleware/cors.go": func(data TemplateData) string {
+		"app/middleware/cors.go": func() string {
 			return `package middleware
 
 import (
@@ -348,7 +349,7 @@ func CORS(next http.Handler) http.Handler {
 }
 `
 		},
-		"app/middleware/logger.go": func(data TemplateData) string {
+		"app/middleware/logger.go": func() string {
 			return `package middleware
 
 import (
@@ -366,7 +367,7 @@ func Logger(next http.Handler) http.Handler {
 }
 `
 		},
-		"app/middleware/notifier.go": func(data TemplateData) string {
+		"app/middleware/notifier.go": func() string {
 			return `package middleware
 
 import (
@@ -442,7 +443,7 @@ func notifyByEmail(subject, body string) {
 }
 `
 		},
-		"app/middleware/recoverer.go": func(data TemplateData) string {
+		"app/middleware/recoverer.go": func() string {
 			return `package middleware
 
 import (
@@ -465,7 +466,7 @@ func Recoverer(next http.Handler) http.Handler {
 }
 `
 		},
-		"app/middleware/rateLimiter.go": func(data TemplateData) string {
+		"app/middleware/rateLimiter.go": func() string {
 			return `package middleware
 
 import (
@@ -490,7 +491,7 @@ func RateLimiter(limit rate.Limit, burst int) func(http.Handler) http.Handler {
 }
 `
 		},
-		"app/middleware/requestId.go": func(data TemplateData) string {
+		"app/middleware/requestId.go": func() string {
 			return `package middleware
 
 import (
@@ -520,7 +521,7 @@ func GetRequestID(r *http.Request) string {
 }
 `
 		},
-		"app/views/components/head.templ": func(data TemplateData) string {
+		"app/views/components/head.templ": func() string {
 			return `package head
 
 templ Head(title, css, js){
@@ -541,7 +542,7 @@ templ Head(title, css, js){
 }
 `
 		},
-		"app/views/layouts/base.templ": func(data TemplateData) string {
+		"app/views/layouts/base.templ": func() string {
 			return `package layouts
 
 import "{{.AppName}}/app/views"
@@ -558,7 +559,7 @@ templ Base(title, css, js string){
 }
 `
 		},
-		"app/views/layouts/app.templ": func(data TemplateData) string {
+		"app/views/layouts/app.templ": func() string {
 			return `package layouts
 
 var (
@@ -575,7 +576,7 @@ templ App() {
 }
 `
 		},
-		"app/views/components/header/header.templ": func(data TemplateData) string {
+		"app/views/components/header/header.templ": func() string {
 			return `package components
 
 templ Header(){
@@ -585,7 +586,7 @@ templ Header(){
 }
 `
 		},
-		"app/views/components/footer/footer.templ": func(data TemplateData) string {
+		"app/views/components/footer/footer.templ": func() string {
 			return `package components
 
 templ Footer(){
@@ -595,7 +596,7 @@ templ Footer(){
 }
 `
 		},
-		"app/views/pages/home.templ": func(data TemplateData) string {
+		"app/views/pages/home.templ": func() string {
 			return `package pages
 
 templ Home(){
@@ -604,7 +605,7 @@ templ Home(){
 }
 `
 		},
-		"app/views/pages/about.templ": func(data TemplateData) string {
+		"app/views/pages/about.templ": func() string {
 			return `package pages
 
 templ About(){
@@ -613,7 +614,7 @@ templ About(){
 }
 `
 		},
-		"app/views/components/navigation/sidebar.templ": func(data TemplateData) string {
+		"app/views/components/navigation/sidebar.templ": func() string {
 			return `package navigation
 
 templ Sidebar(){
@@ -627,7 +628,7 @@ templ Sidebar(){
 }
 `
 		},
-		"public/public.go": func(data TemplateData) string {
+		"public/public.go": func() string {
 			return `package public
 
 import "embed"
@@ -636,7 +637,7 @@ import "embed"
 var AssetsFS embed.FS
 `
 		},
-		"go.mod": func(data TemplateData) string {
+		"go.mod": func() string {
 			return `module {{.AppName}}
 
 go 1.22.4
@@ -644,10 +645,10 @@ go 1.22.4
 require {{.VersionedBackendImport}}
 `
 		},
-		"go.sum": func(data TemplateData) string {
+		"go.sum": func() string {
 			return ``
 		},
-		"README.md": func(data TemplateData) string {
+		"README.md": func() string {
 			return `# {{ .AppName }}
 
 A brief description of what your project does.
@@ -750,13 +751,58 @@ Thanks to the contributors and the open-source community for their valuable inpu
 
             `
 		},
-		"MAKEFILE": func(data TemplateData) string {
+		"MAKEFILE": func() string {
+			return`# Makefile for {{data.AppName}}
+
+# Go parameters
+GOCMD = go
+GOBUILD = $(GOCMD) build
+GOCLEAN = $(GOCMD) clean
+GOTEST = $(GOCMD) test
+GOGET = $(GOCMD) get
+BINARY_NAME = {{data.AppName}}
+BINARY_UNIX = $(BINARY_NAME)_unix
+
+# Frontend parameters
+FRONTEND_DIR = web
+NPMCMD = npm
+NPMINSTALL = $(NPMCMD) install
+NPMRUNBUILD = $(NPMCMD) run build
+
+# All target
+all: test build
+
+# Test target
+test:
+	$(GOTEST) -v ./...
+
+# Build target
+build:
+	$(GOBUILD) -o $(BINARY_NAME) -v
+
+# Release target
+release: clean
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
+	zip $(BINARY_UNIX).zip $(BINARY_UNIX)
+
+# Frontend target
+frontend:
+	cd $(FRONTEND_DIR) && $(NPMINSTALL) && $(NPMRUNBUILD)
+
+# Clean target
+clean:
+	$(GOCLEAN)
+	rm -f $(BINARY_NAME)
+	rm -f $(BINARY_UNIX)
+	rm -f $(BINARY_UNIX).zip
+
+.PHONY: all test build release frontend clean
+`
+		},
+		".gitignore": func() string {
 			return ``
 		},
-		".gitignore": func(data TemplateData) string {
-			return ``
-		},
-		".air.toml": func(data TemplateData) string {
+		".air.toml": func() string {
 			return `[build]
 cmd = "go build -o ./tmp/main ."
 bin = "tmp/main"
@@ -766,7 +812,7 @@ exclude_file = ["go.sum", "go.mod", ".gitignore", ".DS_Store", ".idea"]
 delay = 200
 `
 		},
-		".env": func(data TemplateData) string {
+		".env": func() string {
 			return `
 # Application environment
 # PROD or DEV
@@ -800,7 +846,7 @@ GOST_AUTH_SKIP_VERIFY=true
 GOST_BACKEND={{ .BackendPkg }}
 `
 		},
-		"app/views/views.go": func(data TemplateData) string {
+		"app/views/views.go": func() string {
 			return `package views
 
 import (
@@ -830,7 +876,7 @@ func Asset(fileName string) ([]byte, error) {
 }
 `
 		},
-		"app/views/errors/404.templ": func(data TemplateData) string {
+		"app/views/errors/404.templ": func() string {
 			return `package errors
 
 templ _404(){
@@ -838,7 +884,7 @@ templ _404(){
 }
 `
 		},
-		"app/views/errors/500.templ": func(data TemplateData) string {
+		"app/views/errors/500.templ": func() string {
 			return `package errors
 
 templ _500(){
@@ -851,7 +897,11 @@ templ _500(){
 
 func GenerateFiles(data TemplateData) error {
 	for path, tmplFunc := range FilesMap() {
-		content := tmplFunc(data)
+        content, err := parser.ParseTemplateString(".env", tmplFunc(), data)
+        if err != nil{
+            return err
+        }
+        
 		filePath := filepath.Join(data.AppName, path)
 		if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
 			return fmt.Errorf("failed to create directory: %w", err)
