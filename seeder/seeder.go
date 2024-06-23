@@ -64,3 +64,7 @@ INSERT OR IGNORE INTO models (name, schema) VALUES ('User', '{\"id\": \"INTEGER 
 	runner.RunCommand("echo", doneMessage)
 	return nil
 }
+
+func SeedDBData(appName string) error {
+	return DbInit(appName)
+}

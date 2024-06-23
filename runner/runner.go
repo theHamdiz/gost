@@ -17,11 +17,22 @@ func IsBinaryInstalled(binary string) bool {
 }
 
 func RunCommand(name string, arg ...string) error {
+	return RunCommandWithDir("", name, arg...)
+}
+
+func RunCommandWithDir(dir string, name string, arg ...string) error {
 	cmd := exec.Command(name, arg...)
+	if dir != "" {
+		cmd.Dir = dir
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		return err
 	}
 	return nil
+}
+
+func RunProject(projectDir string) error {
+	return RunCommandWithDir(projectDir, "go", "run", "main.go")
 }

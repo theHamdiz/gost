@@ -238,6 +238,7 @@ func setupFrameworks(projectDir string) error {
 
 	return nil
 }
+
 func addCommands(config gen.GostConfig) *cobra.Command {
 	var rootCmd = &cobra.Command{
 		Use:   "gost",
@@ -279,7 +280,30 @@ func addCommands(config gen.GostConfig) *cobra.Command {
 		},
 	}
 
+	var newCmd = &cobra.Command{
+		Use:   "new [app name] [ui framework] [component framework] [backend framework]",
+		Short: "Create a new project",
+		Args:  cobra.MaximumNArgs(4),
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) > 0 {
+				config.AppName = args[0]
+			}
+			if len(args) > 1 {
+				config.PreferredUiFramework = args[1]
+			}
+			if len(args) > 2 {
+				config.PreferredComponentsFramework = args[2]
+			}
+			if len(args) > 3 {
+				config.PreferredBackendFramework = args[3]
+			}
+			buildConfig(&config)
+			generateProject(config)
+		},
+	}
+
 	rootCmd.AddCommand(createCmd)
+	rootCmd.AddCommand(newCmd)
 	addDbCommands(rootCmd)
 	addRunCommand(rootCmd)
 	addConfigCommands(rootCmd)
@@ -330,7 +354,7 @@ func addRunCommand(rootCmd *cobra.Command) {
 		Short: "Run the project",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Call runner.RunProject
-			fmt.Println("Running project")
+			fmt.Println(clr.Colorize("Running...", "green"))
 		},
 	}
 
@@ -340,7 +364,7 @@ func addRunCommand(rootCmd *cobra.Command) {
 		Short: "Run the project",
 		Run: func(cmd *cobra.Command, args []string) {
 			// Call runner.RunProject
-			fmt.Println("Running project")
+			fmt.Println(clr.Colorize("Running...", "green"))
 		},
 	})
 }
