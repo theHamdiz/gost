@@ -1,114 +1,99 @@
-# GoSt - Your Go Starter Tool
+# 
 
-`GoSt` is a highly flexible and user-friendly command-line tool designed to streamline the creation and management of `Go` projects.By providing both boilerplate code & routine task automation `GoSt` provides a seamless & efficient experience.
+A brief description of what your project does.
 
 ## Features
 
-- **Flexible Project Creation**: Easily create new `Go` web projects with various configurations using both unnamed and named parameters or conversational style configuration builder.
-- **Configurable IDE Support**: Supports a wide range of popular IDEs and editors for `Go` development.
-- **Database Management**: Provides commands to create, migrate, seed, and fake database data.
-- **Run Projects Easily**: Start your `Go` projects effortlessly with built-in commands.
+- Feature 1
+- Feature 2
+- Feature 3
 
 ## Installation
 
-To install `GoSt`, ensure you have `Go` installed on your system, then run:
+To install and run this project, follow these steps:
+
+1. Clone the repository:
 
 ```sh
-go get -u github.com/theHamdiz/gost
+git clone https://github.com/yourusername/yourproject.git
+cd yourproject
+```
+
+2. Install dependencies:
+
+```sh
+go mod tidy
+```
+
+3. Set up environment variables (if any):
+
+```sh
+cp .env.example .env
+# Edit the .env file with your configuration
+```
+
+4. Run the application:
+
+```sh
+go run main.go
 ```
 
 ## Usage
 
-### Project Creation
+### Running the Project
 
-You can create a new `Go` project using various parameter styles:
+To start the project, use:
 
-- **Unnamed Parameters**:
+```sh
+gost r
+```
 
-  ```sh
-  gost create myApp tailwindcss none gin
-  ```
+### Project Structure
 
-- **Shorthand Named Parameters**:
+By default gost creates the following structure for you:
 
-  ```sh
-  gost create -n myApp -ui tailwindcss -c none -b echo
-  ```
+```
+.
+├── cmd             # Main applications of the project
+├── app             # Private application and library code
+├── pkg             # Public library code
+├── web             # Web server-related files
+│   ├── static      # Static files
+│   └── templates   # HTML templates
+├── go.mod          # Go module file
+├── main.go         # Main entry point of the application
+└── README.md       # This file
+```
 
-- **Longhand Named Parameters**:
+### Running Tests
 
-  ```sh
-  gost create --name myApp --uiFramework tailwindcss --componentFramework none --backendFramework echo
-  ```
+To run tests, use:
 
-### Running Commands
-
-- **Run Project**:
-
-  ```sh
-  gost run
-  # or
-  gost r
-  ```
-
-- **Database Migrations**:
-
-  ```sh
-  gost db migrate
-  ```
-
-- **Seed Database**:
-
-  ```sh
-  gost db seed
-  ```
-
-- **Fake Database Data**:
-
-  ```sh
-  gost db fake
-  ```
+```sh
+go test ./...
+```
 
 ## Configuration
 
-`GoSt` will prompt you for any missing configuration settings the first time you run it. You can also set your preferences globally. Configuration is saved in the home directory as `.gost`, `.gost.json`, or `.gost.toml`.
+List any configuration settings for your project:
 
-### Supported IDEs and Editors
-
-`GoSt` supports the following IDEs and editors:
-
-- VSCode
-- Goland
-- IDEA
-- Cursor
-- Zed
-- Sublime
-- Vim
-- Nvim
-- Nano
-- Notepad++
-- Zeus
-- LiteIDE
-- Emacs
-- Eclipse
+- `DATABASE_URL`: The URL of your database.
+- `PORT`: The port on which the server will run.
 
 ## Contributing
 
-I welcome contributions from the community! If you have suggestions, bug reports, or pull requests, please feel free to submit them, *you would be surprised to see how flexible I am to new requests.*
+We welcome contributions! Please follow these steps to contribute:
 
 1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
+2. Create a new branch with your feature or bug fix.
 3. Commit your changes.
-4. Push your branch and create a pull request.
+4. Push the branch to your fork.
+5. Create a pull request.
 
 ## License
 
-`GoSt` is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
 
 ## Acknowledgements
 
-I would like to thank the `Go` community and contributors for their valuable feedback and support in making `GoSt` a powerful tool for `Go` developers.
-
----
-
-Enjoy using `GoSt` and happy coding!
+Thanks to the contributors and the open-source community for their valuable input and support.

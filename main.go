@@ -2,21 +2,24 @@ package main
 
 import (
 	"fmt"
-
 	"os"
 
-	"github.com/theHamdiz/gost/gen"
+	"github.com/theHamdiz/gost/cfg"
+	"github.com/theHamdiz/gost/cli"
+	"github.com/theHamdiz/gost/helpers"
 )
 
-var config gen.GostConfig
-
 func main() {
+	helpers.Config = &cfg.GostConfig{}
+	c := cli.GostCli{
+		Config: helpers.Config,
+	}
 	if len(os.Args) == 1 {
-		config := &gen.GostConfig{}
-		buildConfig(config)
+		helpers.BuildConfig(c.Config)
 	} else {
-		rootCmd := addCommands(config)
-		if err := rootCmd.Execute(); err != nil {
+		rootCmd := helpers.AddCommands(*c.Config)
+		c.Commands = rootCmd
+		if err := c.Commands.Execute(); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}

@@ -11,7 +11,7 @@ type AuthPlugin struct {
 
 func (ap *AuthPlugin) Init(config map[string]interface{}, sc *framework.ServiceContainer) error {
 	ap.authService = sc.GetService("auth").(*AuthService)
-	fmt.Println("Auth Plugin Initialized with config:", config)
+	fmt.Println("Auth Plugin Initialized with cfg:", config)
 	return nil
 }
 
@@ -32,9 +32,9 @@ func NewAuthService() *AuthService {
 }
 
 func main() {
-	config, err := framework.LoadConfig("config.json")
+	config, err := framework.LoadConfig("cfg.json")
 	if err != nil {
-		fmt.Println("Error loading config:", err)
+		fmt.Println("Error loading cfg:", err)
 		return
 	}
 

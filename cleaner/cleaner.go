@@ -20,11 +20,12 @@ func SortImports(filePath string) error {
 	// Find the import section
 	startIdx := strings.Index(contentStr, "import (")
 	if startIdx == -1 {
-		return fmt.Errorf("no import section found")
+		// No Import Section Found, Just return nil.
+		return nil
 	}
 	endIdx := strings.Index(contentStr[startIdx:], ")")
 	if endIdx == -1 {
-		return fmt.Errorf("no closing parenthesis for import section found")
+		return fmt.Errorf("-> no closing parenthesis for import section found")
 	}
 	endIdx += startIdx
 

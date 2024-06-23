@@ -22,7 +22,7 @@ func Colorize(text, color string) string {
 	}
 	if strings.Contains(text, "👉") {
 		msg := strings.SplitN(text, "👉", -1)
-		return colorCode + msg[0] + "\033[96m" + "👉" + "\033[95m" + msg[1]
+		return colorCode + msg[0] + "\033[96m" + "👉" + "\033[95m" + msg[1] + "\033[0m"
 	}
 	return colorCode + text + "\033[0m"
 }
