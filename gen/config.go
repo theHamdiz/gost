@@ -12,7 +12,6 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-// Todo: refactor to GostConfig
 type TemplateData struct {
 	AppName                string
 	BackendImport          string
@@ -44,19 +43,54 @@ func (config *GostConfig) SaveAsEnv(filePath string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}(file)
 
 	writer := bufio.NewWriter(file)
-	fmt.Fprintln(writer, "PreferredIDE="+config.PreferredIDE)
-	fmt.Fprintln(writer, "PreferredBackendFramework="+config.PreferredBackendFramework)
-	fmt.Fprintln(writer, "PreferredUiFramework="+config.PreferredUiFramework)
-	fmt.Fprintln(writer, "PreferredComponentsFramework="+config.PreferredComponentsFramework)
-	fmt.Fprintln(writer, "PreferredDbDriver="+config.PreferredDbDriver)
-	fmt.Fprintln(writer, "PreferredDbOrm="+config.PreferredDbOrm)
-	fmt.Fprintf(writer, "PreferredPort=%d\n", config.PreferredPort)
-	fmt.Fprintln(writer, "GlobalSettings="+config.GlobalSettings)
-	fmt.Fprintln(writer, "PreferredConfigFormat="+config.PreferredConfigFormat)
-	writer.Flush()
+	_, err = fmt.Fprintln(writer, "PreferredIDE="+config.PreferredIDE)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(writer, "PreferredBackendFramework="+config.PreferredBackendFramework)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(writer, "PreferredUiFramework="+config.PreferredUiFramework)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(writer, "PreferredComponentsFramework="+config.PreferredComponentsFramework)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(writer, "PreferredDbDriver="+config.PreferredDbDriver)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(writer, "PreferredDbOrm="+config.PreferredDbOrm)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(writer, "PreferredPort=%d\n", config.PreferredPort)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(writer, "GlobalSettings="+config.GlobalSettings)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintln(writer, "PreferredConfigFormat="+config.PreferredConfigFormat)
+	if err != nil {
+		return err
+	}
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -66,7 +100,12 @@ func (config *GostConfig) SaveAsJSON(filePath string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}(file)
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
@@ -78,7 +117,12 @@ func (config *GostConfig) SaveAsTOML(filePath string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}(file)
 
 	encoder := toml.NewEncoder(file)
 	return encoder.Encode(config)
@@ -89,7 +133,12 @@ func LoadFromEnv(filePath string) (*GostConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}(file)
 
 	config := &GostConfig{}
 	scanner := bufio.NewScanner(file)
@@ -129,7 +178,12 @@ func LoadFromJSON(filePath string) (*GostConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}(file)
 
 	config := &GostConfig{}
 	decoder := json.NewDecoder(file)
@@ -142,7 +196,12 @@ func LoadFromTOML(filePath string) (*GostConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println("Error closing file:", err)
+		}
+	}(file)
 
 	config := &GostConfig{}
 	decoder := toml.NewDecoder(file)
@@ -150,9 +209,9 @@ func LoadFromTOML(filePath string) (*GostConfig, error) {
 	return config, err
 }
 
-// GetBinaryName returns the binary file name for a given IDE/editor name.
-func (c GostConfig) GetIDEBinaryName() (string, error) {
-	ide := strings.ToLower(c.PreferredIDE)
+// GetIDEBinaryName GetBinaryName returns the binary file name for a given IDE/editor name.
+func (config *GostConfig) GetIDEBinaryName() (string, error) {
+	ide := strings.ToLower(config.PreferredIDE)
 	switch ide {
 	case "vscode":
 		return "code", nil
@@ -183,6 +242,6 @@ func (c GostConfig) GetIDEBinaryName() (string, error) {
 	case "eclipse":
 		return "eclipse", nil
 	default:
-		return "", errors.New("> Uknown IDE/editor")
+		return "", errors.New("> Unknown IDE/editor")
 	}
 }

@@ -7,11 +7,64 @@ import (
 	"strings"
 
 	"github.com/theHamdiz/gost/cleaner"
-    "github.com/theHamdiz/gost/parser"
+	"github.com/theHamdiz/gost/parser"
 )
 
 func FilesMap() map[string]func() string {
 	return map[string]func() string{
+		"ui/embed.go": func() string {
+			return `package ui
+
+import (
+	"embed"
+	"net/http"
+	{{- if eq .BackendPkg "echo" }}
+	"github.com/labstack/echo/v5"
+	{{- else if eq .BackendPkg "gin" }}
+	"github.com/gin-gonic/gin"
+	{{- else if eq .BackendPkg "chi" }}
+	"github.com/go-chi/chi/v5"
+	{{- end }}
+)
+
+//go:embed all:dist
+var distDir embed.FS
+
+// DistDirFS contains the embedded dist directory files (without the "dist" prefix)
+var DistDirFS = http.FS(distDir)
+
+{{- if eq .BackendPkg "echo" }}
+
+// RegisterRoutes registers the embedded static files with the provided Echo instance
+func RegisterRoutes(e *echo.Echo) {
+	e.GET("/dist/*", echo.WrapHandler(http.FileServer(DistDirFS)))
+}
+
+{{- else if eq .BackendPkg "gin" }}
+
+// RegisterRoutes registers the embedded static files with the provided Gin engine
+func RegisterRoutes(r *gin.Engine) {
+	r.StaticFS("/dist", DistDirFS)
+}
+
+{{- else if eq .BackendPkg "chi" }}
+
+// RegisterRoutes registers the embedded static files with the provided Chi router
+func RegisterRoutes(r chi.Router) {
+	r.Handle("/dist/*", http.StripPrefix("/dist", http.FileServer(DistDirFS)))
+}
+
+{{- else }}
+
+// RegisterRoutes registers the embedded static files with the provided http.ServeMux
+func RegisterRoutes(mux *http.ServeMux) {
+	mux.Handle("/dist/", http.StripPrefix("/dist", http.FileServer(DistDirFS)))
+}
+
+{{- end }}
+			`
+		},
+
 		"cmd/app/main.go": func() string {
 			return `package main
 
@@ -649,110 +702,74 @@ require {{.VersionedBackendImport}}
 			return ``
 		},
 		"README.md": func() string {
-			return `# {{ .AppName }}
-
-A brief description of what your project does.
-
-## Features
-
-- Feature 1
-- Feature 2
-- Feature 3
-
-## Installation
-
-To install and run this project, follow these steps:
-
-1. Clone the repository:
-
-   ```sh
-   git clone https://github.com/yourusername/yourproject.git
-   cd yourproject
-   ```
-
-2. Install dependencies:
-
-   ```sh
-   go mod tidy
-   ```
-
-3. Set up environment variables (if any):
-
-   ```sh
-   cp .env.example .env
-   # Edit the .env file with your configuration
-   ```
-
-4. Run the application:
-
-   ```sh
-   go run main.go
-   ```
-
-## Usage
-
-### Running the Project
-
-To start the project, use:
-
-```sh
-gost r
-```
-
-### Project Structure
-
-By default gost creates the following structure for you:
-
-```
-.
-├── cmd             # Main applications of the project
-├── app             # Private application and library code
-├── pkg             # Public library code
-├── web             # Web server-related files
-│   ├── static      # Static files
-│   └── templates   # HTML templates
-├── go.mod          # Go module file
-├── main.go         # Main entry point of the application
-└── README.md       # This file
-```
-
-### Running Tests
-
-To run tests, use:
-
-```sh
-go test ./...
-```
-
-## Configuration
-
-List any configuration settings for your project:
-
-- `DATABASE_URL`: The URL of your database.
-- `PORT`: The port on which the server will run.
-
-## Contributing
-
-We welcome contributions! Please follow these steps to contribute:
-
-1. Fork the repository.
-2. Create a new branch with your feature or bug fix.
-3. Commit your changes.
-4. Push the branch to your fork.
-5. Create a pull request.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
-
-## Acknowledgements
-
-Thanks to the contributors and the open-source community for their valuable input and support.
-
-            `
-		},
-		"MAKEFILE": func() string {
-			return`# Makefile for {{data.AppName}}
+			return "# {{ .AppName }}\n\n" +
+				"A brief description of what your project does.\n\n" +
+				"## Features\n\n" +
+				"- Feature 1\n" +
+				"- Feature 2\n" +
+				"- Feature 3\n\n" +
+				"## Installation\n\n" +
+				"To install and run this project, follow these steps:\n\n" +
+				"1. Clone the repository:\n\n" +
+				"```sh\n" +
+				"git clone https://github.com/yourusername/yourproject.git\n" +
+				"cd yourproject\n" +
+				"```\n\n" +
+				"2. Install dependencies:\n\n" +
+				"```sh\n" +
+				"go mod tidy\n" +
+				"```\n\n" +
+				"3. Set up environment variables (if any):\n\n" +
+				"```sh\n" +
+				"cp .env.example .env\n" +
+				"# Edit the .env file with your configuration\n" +
+				"```\n\n" +
+				"4. Run the application:\n\n" +
+				"```sh\n" +
+				"go run main.go\n" +
+				"```\n\n" +
+				"## Usage\n\n" +
+				"### Running the Project\n\n" +
+				"To start the project, use:\n\n" +
+				"```sh\n" +
+				"gost r\n" +
+				"```\n\n" +
+				"### Project Structure\n\n" +
+				"By default gost creates the following structure for you:\n\n" +
+				"```\n" +
+				".\n" +
+				"├── cmd             # Main applications of the project\n" +
+				"├── app             # Private application and library code\n" +
+				"├── pkg             # Public library code\n" +
+				"├── web             # Web server-related files\n" +
+				"│   ├── static      # Static files\n" +
+				"│   └── templates   # HTML templates\n" +
+				"├── go.mod          # Go module file\n" +
+				"├── main.go         # Main entry point of the application\n" +
+				"└── README.md       # This file\n" +
+				"```\n\n" +
+				"### Running Tests\n\n" +
+				"To run tests, use:\n\n" +
+				"```sh\n" +
+				"go test ./...\n" +
+				"```\n\n" +
+				"## Configuration\n\n" +
+				"List any configuration settings for your project:\n\n" +
+				"- `DATABASE_URL`: The URL of your database.\n" +
+				"- `PORT`: The port on which the server will run.\n\n" +
+				"## Contributing\n\n" +
+				"We welcome contributions! Please follow these steps to contribute:\n\n" +
+				"1. Fork the repository.\n" +
+				"2. Create a new branch with your feature or bug fix.\n" +
+				"3. Commit your changes.\n" +
+				"4. Push the branch to your fork.\n" +
+				"5. Create a pull request.\n\n" +
+				"## License\n\n" +
+				"This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.\n\n" +
+				"## Acknowledgements\n\n" +
+				"Thanks to the contributors and the open-source community for their valuable input and support.\n"
+		}, "MAKEFILE": func() string {
+			return `# Makefile for {{data.AppName}}
 
 # Go parameters
 GOCMD = go
@@ -897,11 +914,11 @@ templ _500(){
 
 func GenerateFiles(data TemplateData) error {
 	for path, tmplFunc := range FilesMap() {
-        content, err := parser.ParseTemplateString(".env", tmplFunc(), data)
-        if err != nil{
-            return err
-        }
-        
+		content, err := parser.ParseTemplateString(".env", tmplFunc(), data)
+		if err != nil {
+			return err
+		}
+
 		filePath := filepath.Join(data.AppName, path)
 		if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
 			return fmt.Errorf("failed to create directory: %w", err)

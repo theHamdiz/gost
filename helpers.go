@@ -7,20 +7,18 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-
-	"github.com/theHamdiz/gost/clr"
-	"github.com/theHamdiz/gost/dirs"
-	"github.com/theHamdiz/gost/dwn"
-	"github.com/theHamdiz/gost/router"
-	"github.com/theHamdiz/gost/runner"
-	"github.com/theHamdiz/gost/seeder"
-
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/theHamdiz/gost/clr"
+	"github.com/theHamdiz/gost/dirs"
+	"github.com/theHamdiz/gost/dwn"
 	"github.com/theHamdiz/gost/gen"
+	"github.com/theHamdiz/gost/router"
+	"github.com/theHamdiz/gost/runner"
+	"github.com/theHamdiz/gost/seeder"
 )
 
 func buildConfig(config *gen.GostConfig) {
@@ -109,7 +107,7 @@ func saveConfig(config gen.GostConfig) {
 	var filePath string
 	switch config.PreferredConfigFormat {
 	case "env":
-		filePath = filepath.Join(usr.HomeDir, ".gost")
+		filePath = filepath.Join(usr.HomeDir, ".gost.env")
 	case "json":
 		filePath = filepath.Join(usr.HomeDir, ".gost.json")
 	case "toml":
@@ -143,7 +141,7 @@ func isFirstRun() *gen.GostConfig {
 		return nil
 	}
 
-	envFilePath := filepath.Join(usr.HomeDir, ".gost")
+	envFilePath := filepath.Join(usr.HomeDir, ".gost.env")
 	jsonFilePath := filepath.Join(usr.HomeDir, ".gost.json")
 	tomlFilePath := filepath.Join(usr.HomeDir, ".gost.toml")
 
@@ -152,7 +150,7 @@ func isFirstRun() *gen.GostConfig {
 		if err == nil {
 			return config
 		}
-		fmt.Println(clr.Colorize("Error loading config from .gost file", "red"))
+		fmt.Println(clr.Colorize("Error loading config from .gost.env file", "red"))
 	}
 	if _, err := os.Stat(jsonFilePath); err == nil {
 		config, err := gen.LoadFromJSON(jsonFilePath)
@@ -191,7 +189,7 @@ func installFrameworks(projectDir string) error {
 	return nil
 }
 
-// installTailwind -> Try to install tailwindcss from nodefirst.
+// installTailwind -> Try to install tailwindcss from node first.
 func installTailwind(projectDir string) error {
 	return runner.RunCommand("npm", "install", "tailwind@latest", "--force")
 }
@@ -284,6 +282,7 @@ func addCommands(config gen.GostConfig) *cobra.Command {
 	rootCmd.AddCommand(createCmd)
 	addDbCommands(rootCmd)
 	addRunCommand(rootCmd)
+	addConfigCommands(rootCmd)
 
 	return rootCmd
 }
@@ -346,6 +345,27 @@ func addRunCommand(rootCmd *cobra.Command) {
 	})
 }
 
+func addConfigCommands(rootCmd *cobra.Command) {
+	var configCmd = &cobra.Command{
+		Use:   "config",
+		Short: "Configure the project",
+		Run: func(cmd *cobra.Command, args []string) {
+			// Call config.LoadFromEnv
+			fmt.Println("Loading configuration from environment variables")
+		},
+	}
+
+	rootCmd.AddCommand(configCmd)
+	rootCmd.AddCommand(&cobra.Command{
+		Use:   "c",
+		Short: "Configure the project",
+		Run: func(cmd *cobra.Command, args []string) {
+			// Call config.LoadFromEnv
+			fmt.Println("Loading configuration from environment variables")
+		},
+	})
+}
+
 func generateProject(config gen.GostConfig) {
 	data := gen.TemplateData{
 		AppName:             config.AppName,
@@ -370,21 +390,33 @@ func generateProject(config gen.GostConfig) {
 		data.BackendImport = "github.com/gin-gonic/gin"
 		data.BackendInit = "gin.Default()"
 		data.VersionedBackendImport = fmt.Sprintf("%s@%s", data.BackendImport, getLatestVersion("github.com/gin-gonic/gin"))
-		runner.RunCommand("go", "get", data.VersionedBackendImport)
+		err := runner.RunCommand("go", "get", data.VersionedBackendImport)
+		if err != nil {
+			fmt.Printf("Error running go get: %v\n", err)
+			return
+		}
 		data.VersionedBackendImport = strings.Replace(data.VersionedBackendImport, "@", " ", 1)
 	case "chi":
 		data.BackendImport = "github.com/go-chi/chi/v5"
 		data.BackendPkg = "chi"
 		data.BackendInit = "chi.NewRouter()"
 		data.VersionedBackendImport = fmt.Sprintf("%s@%s", data.BackendImport, getLatestVersion("github.com/go-chi/chi/v5"))
-		runner.RunCommand("go", "get", data.VersionedBackendImport)
+		err := runner.RunCommand("go", "get", data.VersionedBackendImport)
+		if err != nil {
+			fmt.Println("Error running go get:", err)
+			return
+		}
 		data.VersionedBackendImport = strings.Replace(data.VersionedBackendImport, "@", " ", 1)
 	case "echo":
 		data.BackendImport = "github.com/labstack/echo/v5"
 		data.BackendPkg = "echo"
 		data.BackendInit = "echo.New()"
 		data.VersionedBackendImport = fmt.Sprintf("%s@%s", data.BackendImport, "v5.0.0-20230722203903-ec5b858dab61")
-		runner.RunCommand("go", "get", data.VersionedBackendImport)
+		err := runner.RunCommand("go", "get", data.VersionedBackendImport)
+		if err != nil {
+			fmt.Println("Error running go get:", err)
+			return
+		}
 		data.VersionedBackendImport = strings.Replace(data.VersionedBackendImport, "@", " ", 1)
 	default:
 		log.Fatalf("Unsupported backend framework: %s", config.PreferredBackendFramework)
@@ -421,10 +453,18 @@ func generateProject(config gen.GostConfig) {
 		}
 	}
 
-	runner.RunCommand("go", "mod", "tidy")
+	err = runner.RunCommand("go", "mod", "tidy")
+	if err != nil {
+		fmt.Println("Error running go mod tidy:", err)
+		return
+	}
 
 	if _, err := os.Stat(filepath.Join(projectDir, ".git")); os.IsNotExist(err) {
-		runner.RunCommand("git", "init", projectDir)
+		err := runner.RunCommand("git", "init", projectDir)
+		if err != nil {
+			fmt.Println("Error running git init:", err)
+			return
+		}
 	}
 
 	fmt.Println("Project created successfully!")
@@ -433,5 +473,9 @@ func generateProject(config gen.GostConfig) {
 		fmt.Println("Could not launch your preferred IDE: ", err)
 		return
 	}
-	runner.RunCommand(binary, projectDir)
+	err = runner.RunCommand(binary, projectDir)
+	if err != nil {
+		fmt.Println("Error running go get:", err)
+		return
+	}
 }
