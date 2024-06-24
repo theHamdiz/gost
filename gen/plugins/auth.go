@@ -2,14 +2,16 @@ package plugins
 
 import (
 	"fmt"
-	"myframework/framework"
+
+	"github.com/theHamdiz/gost/cfg"
+	"github.com/theHamdiz/gost/services"
 )
 
 type AuthPlugin struct {
 	authService *AuthService
 }
 
-func (ap *AuthPlugin) Init(config map[string]interface{}, sc *framework.ServiceContainer) error {
+func (ap *AuthPlugin) Init(config map[string]interface{}, sc *services.ServiceContainer) error {
 	ap.authService = sc.GetService("auth").(*AuthService)
 	fmt.Println("Auth Plugin Initialized with cfg:", config)
 	return nil
@@ -31,14 +33,14 @@ func NewAuthService() *AuthService {
 	return &AuthService{}
 }
 
-func main() {
-	config, err := framework.LoadConfig("cfg.json")
+func RegisterAuthPlugin(cfg cfg.GostConfig) {
+	config, err := cfg.LoadConfig("cfg.json")
 	if err != nil {
 		fmt.Println("Error loading cfg:", err)
 		return
 	}
 
-	sc := framework.NewServiceContainer()
+	sc := services.NewServiceContainer()
 	authService := NewAuthService()
 	sc.RegisterService("auth", authService)
 
