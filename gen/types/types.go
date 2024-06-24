@@ -1,23 +1,23 @@
 package types
 
 import (
-	"github.com/theHamdiz/gost/config"
-	"github.com/theHamdiz/gost/gen/general"
+    "github.com/theHamdiz/gost/config"
+    "github.com/theHamdiz/gost/gen/general"
 )
 
 type Generator struct {
-	Files map[string]func() string
+    Files map[string]func() string
 }
 
 func (g *Generator) Generate(data config.ProjectData) error {
-	return general.GenerateFiles(data, g.Files)
+    return general.GenerateFiles(data, g.Files)
 }
 
 func NewGenerator() *Generator {
-	return &Generator{
-		Files: map[string]func() string{
-			"gost/prelude.go": func() string {
-				return `package prelude
+    return &Generator{
+        Files: map[string]func() string{
+            "app/types/core/gost.go": func() string {
+                return `package core
 
 import (
     "context"
@@ -52,7 +52,10 @@ type Gost struct {
 }
 
 var errorHandler ErrorHandlerFunc = func(g *Gost, err error) {
-    g.Text(http.StatusInternalServerError, err.Error())
+    err = g.Text(http.StatusInternalServerError, err.Error())
+    if err != nil {
+        log.Println(err)
+    }
 }
 
 func SetErrorHandler(h ErrorHandlerFunc) {
@@ -287,7 +290,7 @@ func NewRouter(backend string) Router {
     }
 }
 `
-			},
-		},
-	}
+            },
+        },
+    }
 }

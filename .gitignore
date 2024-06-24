@@ -7,3 +7,4 @@ tmp
 vendor
 .vscode
 node_modules/*
+goat/*

@@ -18,7 +18,7 @@ type Generator interface {
 
 func GenerateFiles(data config.ProjectData, files map[string]func() string) error {
 	for path, tmplFunc := range files {
-		content, err := parser.ParseTemplateString(path, tmplFunc(), data)
+		content, err := parser.ParseTemplateStringAsText(path, tmplFunc(), data)
 		if err != nil {
 			return fmt.Errorf(">> failed to parse template %s: %w", path, err)
 		}
