@@ -6,6 +6,9 @@ import (
 
 func Colorize(text, color string) string {
 	var colorCode string
+	if color == "" {
+		color = "green"
+	}
 	switch color {
 	case "teal":
 		colorCode = "\033[96m" // Bright Cyan

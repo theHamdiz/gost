@@ -1,12 +1,41 @@
 package seeder
 
 import (
+	"fmt"
+
 	"github.com/theHamdiz/gost/router"
 	"github.com/theHamdiz/gost/runner"
 )
 
 func DbInit(appName string) error {
-	script := `
+	script := GetSeedingScript()
+
+	doneMessage := `Database setup complete. Framework database has been created and populated with initial data.
+	`
+
+	db, err := router.GetDbPath(appName)
+
+	if err != nil {
+		return err
+	}
+
+	err = runner.RunCommand("sqlite3", db, script)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = runner.RunCommand("echo", doneMessage)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return nil
+}
+
+func SeedDBData(appName string) error {
+	return DbInit(appName)
+}
+
+func GetSeedingScript() string {
+	return `
 -- Create settings table
 CREATE TABLE IF NOT EXISTS settings (
     id INTEGER PRIMARY KEY,
@@ -15,8 +44,8 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 
 -- Insert default settings
-INSERT OR IGNORE INTO settings (key, value) VALUES ('site_name', 'My Awesome Site');
-INSERT OR IGNORE INTO settings (key, value) VALUES ('admin_email', 'admin@example.com');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('gost_site_name', 'Gost Site');
+INSERT OR IGNORE INTO settings (key, value) VALUES ('admin_email', 'admin@go.dev');
 
 -- Create users table
 CREATE TABLE IF NOT EXISTS users (
@@ -27,7 +56,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Insert default user
-INSERT OR IGNORE INTO users (name, email, password) VALUES ('admin', 'admin@example.com', 'admin_password');
+INSERT OR IGNORE INTO users (name, email, password) VALUES ('admin', 'admin@go.dev', 'gost');
 
 -- Create plugins table
 CREATE TABLE IF NOT EXISTS plugins (
@@ -38,7 +67,7 @@ CREATE TABLE IF NOT EXISTS plugins (
 
 -- Insert default plugins
 INSERT OR IGNORE INTO plugins (name, enabled) VALUES ('auth', 1);
-INSERT OR IGNORE INTO plugins (name, enabled) VALUES ('logging', 1);
+INSERT OR IGNORE INTO plugins (name, enabled) VALUES ('logger', 1);
 
 -- Create models table
 CREATE TABLE IF NOT EXISTS models (
@@ -50,21 +79,4 @@ CREATE TABLE IF NOT EXISTS models (
 -- Insert example model
 INSERT OR IGNORE INTO models (name, schema) VALUES ('User', '{\"id\": \"INTEGER PRIMARY KEY\", \"name\": \"TEXT\", \"email\": \"TEXT\"}');
 `
-
-	doneMessage := `Database setup complete. Framework database has been created and populated with initial data.
-	`
-
-	db, err := router.GetDbPath(appName)
-
-	if err != nil {
-		return err
-	}
-
-	runner.RunCommand("sqlite3", db, script)
-	runner.RunCommand("echo", doneMessage)
-	return nil
-}
-
-func SeedDBData(appName string) error {
-	return DbInit(appName)
 }

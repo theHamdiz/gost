@@ -1,1 +1,1 @@
-package gen
+package cfg

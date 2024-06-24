@@ -17,17 +17,21 @@ import (
 	"github.com/theHamdiz/gost/cfg"
 	_ "github.com/theHamdiz/gost/cli"
 	"github.com/theHamdiz/gost/clr"
+	genCfg "github.com/theHamdiz/gost/config"
 	"github.com/theHamdiz/gost/dwn"
-	genCfg "github.com/theHamdiz/gost/gen/config"
+	"github.com/theHamdiz/gost/gen"
 	"github.com/theHamdiz/gost/gen/dirs"
-	"github.com/theHamdiz/gost/gen/files"
 	"github.com/theHamdiz/gost/gen/fingerprint"
+	"github.com/theHamdiz/gost/git"
+	"github.com/theHamdiz/gost/npm"
 	"github.com/theHamdiz/gost/router"
 	"github.com/theHamdiz/gost/runner"
 	"github.com/theHamdiz/gost/seeder"
+	"github.com/theHamdiz/gost/tailwind"
 )
 
 var Config *cfg.GostConfig
+var ProjectData *genCfg.ProjectData
 
 func BuildConfig(config *cfg.GostConfig) {
 	scanner := bufio.NewScanner(os.Stdin)
@@ -60,7 +64,7 @@ func BuildConfig(config *cfg.GostConfig) {
 		somethingChanged = true
 	}
 	if config.PreferredDbOrm == "" {
-		config.PreferredDbOrm = askChoice(scanner, "[-] Choose your preferred ORM:", []string{"Ent", "Gorm", "Bun", "Sqlc", "Bob", "None"})
+		config.PreferredDbOrm = askChoice(scanner, "[-] Choose your preferred ORM:", []string{"Built In", "Ent", "Gorm", "Bun", "Sqlc", "Bob"})
 		somethingChanged = true
 	}
 	if config.PreferredUiFramework == "" {
@@ -68,7 +72,7 @@ func BuildConfig(config *cfg.GostConfig) {
 		somethingChanged = true
 	}
 	if config.PreferredUiFramework == "Tailwindcss" && config.PreferredComponentsFramework == "" {
-		config.PreferredComponentsFramework = askChoice(scanner, "[-] Choose your preferred components framework (tailwind only):", []string{"None", "DaisyUI", "Flowbite"})
+		config.PreferredComponentsFramework = askChoice(scanner, "[-] Choose your preferred components framework (tailwind only):", []string{"None", "DaisyUI", "Flowbite", "PrelineUI", "TW-Elements"})
 		somethingChanged = true
 	} else if config.PreferredUiFramework != "Tailwindcss" {
 		config.PreferredComponentsFramework = "None"
@@ -198,21 +202,28 @@ func isFirstRun() *cfg.GostConfig {
 }
 
 func installFrameworks(projectDir string) error {
-	err := installTailwind(projectDir)
-	if err != nil {
-		return err
+	switch strings.ToLower(ProjectData.UiFramework) {
+	case "tailwind", "tailwindcss":
+		err := installTailwind(projectDir)
+		if err != nil {
+			fmt.Printf(clr.Colorize("Error installing tailwind: %s\n", "red"))
+		}
+	case "bootstrap", "bootstrapjs", "bootstrapcss":
+		err := installBootstrap(projectDir)
+		if err != nil {
+			fmt.Printf(clr.Colorize("Error installing bootstrap: %s\n", "red"))
+		}
 	}
 
-	err = installBootstrap(projectDir)
+	err := installHtmx(projectDir)
 	if err != nil {
-		return err
+		fmt.Printf(clr.Colorize("Error installing htmx: %s\n", "red"), "red")
 	}
 
-	err = installHtmx(projectDir)
+	err = installAir(projectDir)
 	if err != nil {
-		return err
+		fmt.Printf(clr.Colorize("Error installing air: %s\n", "red"), err)
 	}
-
 	return nil
 }
 
@@ -299,24 +310,34 @@ func AddCommands(config cfg.GostConfig) *cobra.Command {
 	return rootCmd
 }
 
-func GenerateProjectDir(config *cfg.GostConfig) {
-	data := CreateProjectDataFromConfig(config)
-	projectDir, err := router.GetProjectPath(data.AppName)
+func GenerateProjectDir(config *cfg.GostConfig) error {
+	ProjectData = CreateProjectDataFromConfig(config)
+	ProjectData.AppName = strings.ToLower(config.AppName)
+	if ProjectData.AppName == "" {
+		panic(clr.Colorize("Please specify a project name!", "red"))
+	}
+
+	projectDir, err := router.GetProjectPath(ProjectData.AppName)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if data.AppName == "" {
-		panic(clr.Colorize("Please specify a project name!", "red"))
+	ProjectData.ProjectDir = projectDir
+
+	if _, err := os.Stat(ProjectData.ProjectDir); err == nil {
+		return fmt.Errorf(">> Project already exists")
 	}
 
-	err = dirs.Generate(projectDir)
+	dirsGenerator := dirs.NewDirsGenerator()
+	err = dirsGenerator.Generate(projectDir)
 	if err != nil {
 		panic(err)
 	}
 
 	fmt.Println(clr.Colorize(fmt.Sprintf("Project Dir created successfully 👉 %s", projectDir), "green"))
+	return nil
 }
+
 func initCmd(config cfg.GostConfig) *cobra.Command {
 	return &cobra.Command{
 		Use:     "init [app name]",
@@ -328,7 +349,11 @@ func initCmd(config cfg.GostConfig) *cobra.Command {
 				config.AppName = args[0]
 			}
 			BuildConfig(&config)
-			GenerateProjectDir(&config)
+			err := GenerateProjectDir(&config)
+			if err != nil {
+				fmt.Println(clr.Colorize(err.Error(), "red"))
+				return
+			}
 			generateProject(&config)
 		},
 	}
@@ -344,13 +369,15 @@ func createCmd(config cfg.GostConfig) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 0 {
 				config.AppName = args[0]
-				fmt.Println("Create>> App Name:", config.AppName)
 			} else {
 				panic("Please specify a project name")
 			}
-			fmt.Println("Create>>After>> App Name:", config.AppName)
 			BuildConfig(&config)
-			GenerateProjectDir(&config)
+			err := GenerateProjectDir(&config)
+			if err != nil {
+				fmt.Println(clr.Colorize(err.Error(), "red"))
+				return
+			}
 			generateProject(&config)
 		},
 	}
@@ -367,7 +394,11 @@ func newCmd(config cfg.GostConfig) *cobra.Command {
 				config.AppName = args[0]
 			}
 			BuildConfig(&config)
-			GenerateProjectDir(&config)
+			err := GenerateProjectDir(&config)
+			if err != nil {
+				fmt.Println(clr.Colorize(err.Error(), "red"))
+				return
+			}
 			generateProject(&config)
 		},
 	}
@@ -721,107 +752,129 @@ func CreateProjectDataFromConfig(config *cfg.GostConfig) *genCfg.ProjectData {
 		MigrationsDir:       "app/db/migrations",
 	}
 }
+
 func generateProject(config *cfg.GostConfig) {
-	data := CreateProjectDataFromConfig(config)
+	fmt.Println(clr.Colorize("App Name:", "teal"), clr.Colorize(ProjectData.AppName, "green"))
+	fmt.Println(clr.Colorize("Project Directory:", "teal"), clr.Colorize(ProjectData.ProjectDir, "green"))
+	fmt.Println(clr.Colorize("UI Framework:", "teal"), clr.Colorize(ProjectData.UiFramework, ""))
+	fmt.Println(clr.Colorize("Component Framework:", "teal"), clr.Colorize(ProjectData.ComponentsFramework, ""))
+	fmt.Println(clr.Colorize("Backend Framework:", "teal"), clr.Colorize(ProjectData.BackendPkg, ""))
+	fmt.Println(clr.Colorize("DB Framework:", "teal"), clr.Colorize(ProjectData.DbDriver, ""))
+	fmt.Println(clr.Colorize("DB Orm:", "teal"), clr.Colorize(ProjectData.DbOrm, ""))
 
-	fmt.Println("App Name:", data.AppName)
-	fmt.Println("UI Framework:", data.UiFramework)
-	fmt.Println("Component Framework:", data.ComponentsFramework)
-	fmt.Println("Backend Framework:", data.BackendPkg)
-	fmt.Println("DB Framework:", data.DbDriver)
-	fmt.Println("DB Orm:", data.DbOrm)
-
-	if err := files.GenerateFiles(*data); err != nil {
+	if err := gen.ExecuteGeneration(*ProjectData); err != nil {
 		fmt.Printf("Error generating files: %v\n", err)
 	}
 
-	switch strings.ToLower(data.BackendPkg) {
+	switch strings.ToLower(ProjectData.BackendPkg) {
 	case "gin":
-		data.BackendImport = "github.com/gin-gonic/gin"
-		data.BackendInit = "gin.Default()"
-		data.VersionedBackendImport = fmt.Sprintf("%s@%s", data.BackendImport, getLatestGoPackageVersion("github.com/gin-gonic/gin"))
-		err := runner.RunCommand("go", "get", data.VersionedBackendImport)
+		ProjectData.BackendImport = "github.com/gin-gonic/gin"
+		ProjectData.BackendInit = "gin.Default()"
+		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, getLatestGoPackageVersion("github.com/gin-gonic/gin"))
+		err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
 		if err != nil {
 			fmt.Printf("Error running go get: %+v\n", err)
 			return
 		}
-		data.VersionedBackendImport = strings.Replace(data.VersionedBackendImport, "@", " ", 1)
+		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	case "chi":
-		data.BackendImport = "github.com/go-chi/chi/v5"
-		data.BackendPkg = "chi"
-		data.BackendInit = "chi.NewRouter()"
-		data.VersionedBackendImport = fmt.Sprintf("%s@%s", data.BackendImport, getLatestGoPackageVersion("github.com/go-chi/chi/v5"))
-		err := runner.RunCommand("go", "get", data.VersionedBackendImport)
+		ProjectData.BackendImport = "github.com/go-chi/chi/v5"
+		ProjectData.BackendPkg = "chi"
+		ProjectData.BackendInit = "chi.NewRouter()"
+		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, getLatestGoPackageVersion("github.com/go-chi/chi/v5"))
+		err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
 		if err != nil {
 			fmt.Println("Error running go get:", err)
 			return
 		}
-		data.VersionedBackendImport = strings.Replace(data.VersionedBackendImport, "@", " ", 1)
+		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	case "echo":
-		data.BackendImport = "github.com/labstack/echo/v5"
-		data.BackendPkg = "echo"
-		data.BackendInit = "echo.New()"
-		data.VersionedBackendImport = fmt.Sprintf("%s@%s", data.BackendImport, "v5.0.0-20230722203903-ec5b858dab61")
-		err := runner.RunCommand("go", "get", data.VersionedBackendImport)
+		ProjectData.BackendImport = "github.com/labstack/echo/v5"
+		ProjectData.BackendPkg = "echo"
+		ProjectData.BackendInit = "echo.New()"
+		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, "v5.0.0-20230722203903-ec5b858dab61")
+		err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
 		if err != nil {
 			fmt.Println("Error running go get:", err)
 			return
 		}
-		data.VersionedBackendImport = strings.Replace(data.VersionedBackendImport, "@", " ", 1)
+		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	default:
 		log.Fatalf("Unsupported backend framework: %s", config.PreferredBackendFramework)
 	}
 
 	fingerPrint, _ := fingerprint.Fingerprint(config.AppName)
-	data.Fingerprint = fingerPrint
+	ProjectData.Fingerprint = fingerPrint
 
-	err := files.GenerateFiles(*data)
+	err := gen.ExecuteGeneration(*ProjectData)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	err = seeder.DbInit(config.AppName)
 	if err != nil {
-		return
+		fmt.Printf(clr.Colorize("Error seeding database: %v\n", "red"), err)
 	}
 
-	err = installFrameworks(data.ProjectDir)
+	err = npm.CheckNPMInstalled()
 	if err != nil {
-		err = setupFrameworks(data.ProjectDir)
+		fmt.Println(err)
+	}
+
+	err = installFrameworks(ProjectData.ProjectDir)
+	if err != nil {
+		err = setupFrameworks(ProjectData.ProjectDir)
 		if err != nil {
-			panic("Could not install UI or Components frameworks using either npm or direct download, maybe check your internet connection!")
+			fmt.Println(clr.Colorize("Could not install UI or Components frameworks using either npm or direct download, maybe check your internet connection!", "red"))
 		}
 	}
 
-	err = runner.RunCommand("go", "mod", "tidy")
-	if err != nil {
-		fmt.Println("Error running go mod tidy:", err)
-		return
-	}
+	// Here install components framework & its config.
+	if ProjectData.ComponentsFramework != "" {
+		err = runner.RunCommand(tailwind.GetInstallationCommandFor(ProjectData.ComponentsFramework))
+		if err == nil {
+			contentStr := tailwind.GetContentConfigForComponentFramework(ProjectData.ComponentsFramework)
+			if contentStr != "" {
+				err = tailwind.AppendToTailwindConfig(filepath.Join(ProjectData.ProjectDir, "tailwind.config.js"), "content", contentStr)
+			}
 
-	if _, err := os.Stat(filepath.Join(data.ProjectDir, ".git")); os.IsNotExist(err) {
-		err := runner.RunCommand("git", "init", data.ProjectDir)
-		if err != nil {
-			fmt.Println("Error running git init:", err)
-			return
+			pluginStr := tailwind.GetContentConfigForComponentFramework(ProjectData.ComponentsFramework)
+			if pluginStr != "" {
+				err = tailwind.AppendToTailwindConfig(filepath.Join(ProjectData.ProjectDir, "tailwind.config.js"), "plugins", pluginStr)
+			}
 		}
 	}
 
 	err = runner.RunCommand("npm", "audit", "fix")
 	if err != nil {
-		fmt.Println("Error running npm audit fix:", err)
-		return
+		fmt.Println(clr.Colorize("Error running npm audit fix:", "red"), err)
 	}
 
-	fmt.Println("Project created successfully!")
+	err = runner.RunCommand("go", "mod", "tidy")
+	if err != nil {
+		fmt.Println(clr.Colorize("Error running go mod tidy:", "red"), err)
+	}
+
+	err = git.CheckGitInstalled()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if _, err := os.Stat(filepath.Join(ProjectData.ProjectDir, ".git")); os.IsNotExist(err) {
+		err := runner.RunCommand("git", "init", ProjectData.ProjectDir)
+		if err != nil {
+			fmt.Println(clr.Colorize("Error running git init:", "red"), err)
+		}
+	}
+
+	fmt.Println(clr.Colorize("Project created successfully!", "teal"))
+
 	binary, err := config.GetIDEBinaryName()
 	if err != nil {
-		fmt.Println("Could not launch your preferred IDE: ", err)
-		return
+		fmt.Println(clr.Colorize("Could not launch your preferred IDE: ", "red"), err)
 	}
-	err = runner.RunCommand(binary, data.ProjectDir)
+	err = runner.RunCommand(binary, ProjectData.ProjectDir)
 	if err != nil {
-		fmt.Println("Error running go get:", err)
-		return
+		fmt.Println(clr.Colorize("Error running go get:", "red"), err)
 	}
 }

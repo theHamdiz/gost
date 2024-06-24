@@ -1,6 +1,8 @@
 package gen
 
-import "github.com/theHamdiz/gost/gen/config"
+import (
+	"github.com/theHamdiz/gost/config"
+)
 
 type ApiGenerator struct {
 	Files []string

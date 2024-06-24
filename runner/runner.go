@@ -34,5 +34,5 @@ func RunCommandWithDir(dir string, name string, arg ...string) error {
 }
 
 func RunProject(projectDir string) error {
-	return RunCommandWithDir(projectDir, "go", "run", "main.go")
+	return RunCommandWithDir(projectDir, "go", "run", "cmd/app/main.go")
 }

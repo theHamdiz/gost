@@ -6,14 +6,11 @@ import (
 	"path/filepath"
 )
 
-import "github.com/theHamdiz/gost/gen/config"
-
-type DbGenerator struct {
+type Generator struct {
 	Dirs []string
 }
 
-func (g *DbGenerator) Generate(data config.ProjectData) error {
-	projectDir := data.ProjectDir
+func (g *Generator) Generate(projectDir string) error {
 	for _, dir := range g.Dirs {
 		path := filepath.Join(projectDir, dir)
 		if err := os.MkdirAll(path, 0755); err != nil {
@@ -23,8 +20,8 @@ func (g *DbGenerator) Generate(data config.ProjectData) error {
 	return nil
 }
 
-func NewApiGenerator() *DbGenerator {
-	return &DbGenerator{
+func NewDirsGenerator() *Generator {
+	return &Generator{
 		Dirs: []string{
 			"cmd/app",
 			"cmd/scripts",

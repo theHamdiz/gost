@@ -1,9 +1,10 @@
-package plugins
+package auth
 
 import (
 	"fmt"
 
-	"github.com/theHamdiz/gost/cfg"
+	"github.com/theHamdiz/gost/plugins"
+	"github.com/theHamdiz/gost/plugins/config"
 	"github.com/theHamdiz/gost/services"
 )
 
@@ -33,18 +34,12 @@ func NewAuthService() *AuthService {
 	return &AuthService{}
 }
 
-func RegisterAuthPlugin(cfg cfg.GostConfig) {
-	config, err := cfg.LoadConfig("cfg.json")
-	if err != nil {
-		fmt.Println("Error loading cfg:", err)
-		return
-	}
-
+func RegisterAuthPlugin(cfg config.PluginConfig) {
 	sc := services.NewServiceContainer()
 	authService := NewAuthService()
 	sc.RegisterService("auth", authService)
 
-	pm := framework.NewPluginManager(*config, sc)
+	pm := plugins.NewPluginManager(cfg, sc)
 	authPlugin := &AuthPlugin{}
 	pm.RegisterPlugin("auth", authPlugin)
 
