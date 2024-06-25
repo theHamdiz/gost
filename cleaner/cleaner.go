@@ -25,7 +25,7 @@ func SortImports(filePath string) error {
 	}
 	endIdx := strings.Index(contentStr[startIdx:], ")")
 	if endIdx == -1 {
-		return fmt.Errorf("-> no closing parenthesis for import section found")
+		return fmt.Errorf(">>Gost>>no closing parenthesis for import section found")
 	}
 	endIdx += startIdx
 

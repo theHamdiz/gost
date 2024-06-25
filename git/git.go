@@ -13,16 +13,16 @@ func CheckGitInstalled() error {
 		return nil
 	}
 
-	fmt.Println(">> git not found, attempting to install...")
+	fmt.Println(">>Gost>> git not found, attempting to install...")
 
 	// Attempt to install git
 	if err := installGit(); err != nil {
-		return fmt.Errorf("failed to install git: %w", err)
+		return fmt.Errorf(">>Gost>> failed to install git: %w", err)
 	}
 
 	// Check again if git is installed
 	if err := isGitInstalled(); err != nil {
-		return fmt.Errorf("git installation verification failed: %w", err)
+		return fmt.Errorf(">>Gost>> git installation verification failed: %w", err)
 	}
 
 	return nil

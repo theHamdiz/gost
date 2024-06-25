@@ -13,16 +13,16 @@ func CheckNPMInstalled() error {
 		return nil
 	}
 
-	fmt.Println(">> npm not found, attempting to install...")
+	fmt.Println(">>Gost>> npm not found, attempting to install...")
 
 	// Attempt to install npm
 	if err := installNPM(); err != nil {
-		return fmt.Errorf("failed to install npm: %w", err)
+		return fmt.Errorf(">>Gost>> failed to install npm: %w", err)
 	}
 
 	// Check again if npm is installed
 	if err := isNPMInstalled(); err != nil {
-		return fmt.Errorf("npm installation verification failed: %w", err)
+		return fmt.Errorf(">>Gost>> npm installation verification failed: %w", err)
 	}
 
 	return nil

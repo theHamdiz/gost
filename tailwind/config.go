@@ -11,7 +11,7 @@ import (
 func AppendToTailwindConfig(filePath, section, newEntry string) error {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to open file: %w", err)
+		return fmt.Errorf(">>Gost>> failed to open file: %w", err)
 	}
 	defer func(file *os.File) {
 		err := file.Close()
@@ -49,7 +49,7 @@ func AppendToTailwindConfig(filePath, section, newEntry string) error {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error reading file: %w", err)
+		return fmt.Errorf(">>Gost>> error reading file: %w", err)
 	}
 
 	// If section was not found, create it
@@ -60,7 +60,7 @@ func AppendToTailwindConfig(filePath, section, newEntry string) error {
 	// Write the modified content back to the file
 	file, err = os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("failed to create file: %w", err)
+		return fmt.Errorf(">>Gost>> failed to create file: %w", err)
 	}
 	defer func(file *os.File) {
 		err := file.Close()

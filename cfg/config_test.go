@@ -17,7 +17,7 @@ func createTestFile(t *testing.T, filePath string, content string) {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Error closing file:", err)
+			fmt.Println(">>Gost>>Error closing file:", err)
 		}
 	}(file)
 
@@ -42,7 +42,7 @@ func TestSaveAsEnv(t *testing.T) {
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			fmt.Println("Error removing file:", err)
+			fmt.Println(">>Gost>> Error removing file:", err)
 		}
 	}(filePath)
 
@@ -73,7 +73,7 @@ func TestSaveAsJSON(t *testing.T) {
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			fmt.Println("Error removing file:", err)
+			fmt.Println(">>Gost>>Error removing file:", err)
 		}
 	}(filePath)
 
@@ -105,7 +105,7 @@ func TestSaveAsTOML(t *testing.T) {
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			fmt.Println("Error removing file:", err)
+			fmt.Println(">>Gost>>Error removing file:", err)
 		}
 	}(filePath)
 
@@ -136,7 +136,7 @@ PreferredConfigFormat=env
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			fmt.Println("Error removing file:", err)
+			fmt.Println(">>Gost>>Error removing file:", err)
 		}
 	}(filePath)
 
@@ -177,7 +177,7 @@ func TestLoadFromJSON(t *testing.T) {
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			fmt.Println("Error removing file:", err)
+			fmt.Println(">>Gost>>Error removing file:", err)
 		}
 	}(filePath)
 
@@ -205,7 +205,7 @@ func TestLoadFromTOML(t *testing.T) {
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			fmt.Println("Error removing file:", err)
+			fmt.Println(">>Gost>>Error removing file:", err)
 		}
 	}(filePath)
 

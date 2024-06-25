@@ -33,3 +33,7 @@ func (c *PluginConfig) GetPluginConfig(pluginName string) map[string]interface{}
 	}
 	return nil
 }
+
+type PluginManagerConfig struct {
+	PluginsDir string
+}

@@ -37,48 +37,48 @@ func (config *GostConfig) SaveAsEnv(filePath string) error {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Error closing file:", err)
+			fmt.Println(">>Gost>> Error closing file:", err)
 		}
 	}(file)
 
 	writer := bufio.NewWriter(file)
-	_, err = fmt.Fprintln(writer, "PreferredIDE="+config.PreferredIDE)
+	_, err = fmt.Fprintln(writer, ">>Gost>> PreferredIDE="+config.PreferredIDE)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(writer, "PreferredBackendFramework="+config.PreferredBackendFramework)
+	_, err = fmt.Fprintln(writer, ">>Gost>> PreferredBackendFramework="+config.PreferredBackendFramework)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(writer, "PreferredUiFramework="+config.PreferredUiFramework)
+	_, err = fmt.Fprintln(writer, ">>Gost>> PreferredUiFramework="+config.PreferredUiFramework)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(writer, "PreferredComponentsFramework="+config.PreferredComponentsFramework)
+	_, err = fmt.Fprintln(writer, ">>Gost>> PreferredComponentsFramework="+config.PreferredComponentsFramework)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(writer, "PreferredDbDriver="+config.PreferredDbDriver)
+	_, err = fmt.Fprintln(writer, ">>Gost>> PreferredDbDriver="+config.PreferredDbDriver)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(writer, "PreferredDbOrm="+config.PreferredDbOrm)
+	_, err = fmt.Fprintln(writer, ">>Gost>> PreferredDbOrm="+config.PreferredDbOrm)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintf(writer, "PreferredPort=%d\n", config.PreferredPort)
+	_, err = fmt.Fprintf(writer, ">>Gost>> PreferredPort=%d\n", config.PreferredPort)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(writer, "GlobalSettings="+config.GlobalSettings)
+	_, err = fmt.Fprintln(writer, ">>Gost>> GlobalSettings="+config.GlobalSettings)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(writer, "PreferredConfigFormat="+config.PreferredConfigFormat)
+	_, err = fmt.Fprintln(writer, ">>Gost>> PreferredConfigFormat="+config.PreferredConfigFormat)
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintln(writer, "PreferredFrontEndFramework="+config.PreferredFrontEndFramework)
+	_, err = fmt.Fprintln(writer, ">>Gost>> PreferredFrontEndFramework="+config.PreferredFrontEndFramework)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func (config *GostConfig) SaveAsJSON(filePath string) error {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Error closing file:", err)
+			fmt.Println(">>Gost>> Error closing file:", err)
 		}
 	}(file)
 
@@ -115,7 +115,7 @@ func (config *GostConfig) SaveAsTOML(filePath string) error {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Error closing file:", err)
+			fmt.Println(">>Gost>> Error closing file:", err)
 		}
 	}(file)
 
@@ -156,7 +156,7 @@ func (config *GostConfig) GetIDEBinaryName() (string, error) {
 	case "eclipse":
 		return "eclipse", nil
 	default:
-		return "", errors.New("> Unknown IDE/editor")
+		return "", errors.New(">>Gost>>  Unknown IDE/editor")
 	}
 }
 
@@ -168,7 +168,7 @@ func LoadFromEnv(filePath string) (*GostConfig, error) {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Error closing file:", err)
+			fmt.Println(">>Gost>> Error closing file:", err)
 		}
 	}(file)
 
@@ -213,7 +213,7 @@ func LoadFromJSON(filePath string) (*GostConfig, error) {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Error closing file:", err)
+			fmt.Println(">>Gost>> Error closing file:", err)
 		}
 	}(file)
 
@@ -231,7 +231,7 @@ func LoadFromTOML(filePath string) (*GostConfig, error) {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println("Error closing file:", err)
+			fmt.Println(">>Gost>> Error closing file:", err)
 		}
 	}(file)
 
@@ -244,7 +244,7 @@ func LoadFromTOML(filePath string) (*GostConfig, error) {
 func GetConfigPath() string {
 	usr, err := user.Current()
 	if err != nil {
-		fmt.Println(clr.Colorize("Error getting user home directory", "red"))
+		fmt.Println(clr.Colorize(">>Gost>> Error getting user home directory", "red"))
 		return ""
 	}
 
@@ -271,7 +271,7 @@ func ResetConfig(configPath string) {
 	}
 	err := os.Remove(configPath)
 	if err != nil {
-		fmt.Println(clr.Colorize("Error removing config file:", "red"))
+		fmt.Println(clr.Colorize(">>Gost>> Error removing config file:", "red"))
 		return
 	}
 }
@@ -282,27 +282,27 @@ func ShowConfig(configPath string) {
 	}
 
 	if configPath == "" {
-		fmt.Println(clr.Colorize("Could not find a config file. Please run gost init first.", "red"))
+		fmt.Println(clr.Colorize(">>Gost>> Could not find a config file. Please run gost init first.", "red"))
 		return
 	}
 	if strings.HasSuffix(configPath, ".toml") {
 		config, err := LoadFromTOML(configPath)
 		if err != nil {
-			fmt.Println(clr.Colorize("Error loading config from .gost.toml file", "red"))
+			fmt.Println(clr.Colorize(">>Gost>> Error loading config from .gost.toml file", "red"))
 			return
 		}
 		fmt.Println(clr.Colorize(fmt.Sprintf("%+v", config), "green"))
 	} else if strings.HasSuffix(configPath, ".json") {
 		config, err := LoadFromJSON(configPath)
 		if err != nil {
-			fmt.Println(clr.Colorize("Error loading config from .gost.json file", "red"))
+			fmt.Println(clr.Colorize(">>Gost>> Error loading config from .gost.json file", "red"))
 			return
 		}
 		fmt.Println(clr.Colorize(fmt.Sprintf("%+v", config), "green"))
 	} else {
 		config, err := LoadFromEnv(configPath)
 		if err != nil {
-			fmt.Println(clr.Colorize("Error loading config from .gost.env file", "red"))
+			fmt.Println(clr.Colorize(">>Gost>> Error loading config from .gost.env file", "red"))
 			return
 		}
 		fmt.Println(clr.Colorize(fmt.Sprintf("%+v", config), "green"))

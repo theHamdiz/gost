@@ -17,11 +17,11 @@ import (
 	"github.com/theHamdiz/gost/cfg"
 	_ "github.com/theHamdiz/gost/cli"
 	"github.com/theHamdiz/gost/clr"
+	"github.com/theHamdiz/gost/codegen"
+	"github.com/theHamdiz/gost/codegen/dirs"
+	"github.com/theHamdiz/gost/codegen/fingerprint"
 	genCfg "github.com/theHamdiz/gost/config"
 	"github.com/theHamdiz/gost/dwn"
-	"github.com/theHamdiz/gost/gen"
-	"github.com/theHamdiz/gost/gen/dirs"
-	"github.com/theHamdiz/gost/gen/fingerprint"
 	"github.com/theHamdiz/gost/git"
 	"github.com/theHamdiz/gost/npm"
 	"github.com/theHamdiz/gost/router"
@@ -311,7 +311,7 @@ func AddCommands(config cfg.GostConfig) *cobra.Command {
 }
 
 func GenerateProjectDir(config *cfg.GostConfig) error {
-	ProjectData = CreateProjectDataFromConfig(config)
+	ProjectData = NewProjectDataFromConfig(config)
 	ProjectData.AppName = strings.ToLower(config.AppName)
 	if ProjectData.AppName == "" {
 		panic(clr.Colorize("Please specify a project name!", "red"))
@@ -325,7 +325,7 @@ func GenerateProjectDir(config *cfg.GostConfig) error {
 	ProjectData.ProjectDir = projectDir
 
 	if _, err := os.Stat(ProjectData.ProjectDir); err == nil {
-		return fmt.Errorf(">> Project already exists")
+		return fmt.Errorf(">>Gost>> Project already exists")
 	}
 
 	dirsGenerator := dirs.NewDirsGenerator()
@@ -549,7 +549,7 @@ func addGenerateCommands(rootCmd *cobra.Command) {
 	var generateCmd = &cobra.Command{
 		Use:     "generate",
 		Short:   "Generate a new component",
-		Aliases: []string{"g", "gen"},
+		Aliases: []string{"g", "codegen"},
 	}
 
 	var modelCmd = &cobra.Command{
@@ -697,8 +697,11 @@ func addTestCommands(rootCmd *cobra.Command) {
 		Short:   "Run tests",
 		Aliases: []string{"t", "ts"},
 		Run: func(cmd *cobra.Command, args []string) {
-			// Call test.RunTests
-			fmt.Println("Running tests...")
+			fmt.Println(">>Gost>> Running tests...")
+			err := runner.RunTests(ProjectData.ProjectDir)
+			if err != nil {
+				fmt.Printf(clr.Colorize("Error running tests: %v\n", "red"), err)
+			}
 		},
 	}
 
@@ -738,7 +741,7 @@ func CapitalizeFirstLetter(s string) string {
 	return string(first) + rest
 }
 
-func CreateProjectDataFromConfig(config *cfg.GostConfig) *genCfg.ProjectData {
+func NewProjectDataFromConfig(config *cfg.GostConfig) *genCfg.ProjectData {
 	return &genCfg.ProjectData{
 		AppName:             CapitalizeFirstLetter(config.AppName),
 		BackendPkg:          config.PreferredBackendFramework,
@@ -762,7 +765,7 @@ func generateProject(config *cfg.GostConfig) {
 	fmt.Println(clr.Colorize("DB Framework:", "teal"), clr.Colorize(ProjectData.DbDriver, ""))
 	fmt.Println(clr.Colorize("DB Orm:", "teal"), clr.Colorize(ProjectData.DbOrm, ""))
 
-	if err := gen.ExecuteGeneration(*ProjectData); err != nil {
+	if err := codegen.ExecuteGeneration(*ProjectData); err != nil {
 		fmt.Printf("Error generating files: %v\n", err)
 	}
 
@@ -806,7 +809,7 @@ func generateProject(config *cfg.GostConfig) {
 	fingerPrint, _ := fingerprint.Fingerprint(config.AppName)
 	ProjectData.Fingerprint = fingerPrint
 
-	err := gen.ExecuteGeneration(*ProjectData)
+	err := codegen.ExecuteGeneration(*ProjectData)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -873,6 +876,12 @@ func generateProject(config *cfg.GostConfig) {
 	if err != nil {
 		fmt.Println(clr.Colorize("Could not launch your preferred IDE: ", "red"), err)
 	}
+
+	err = runner.RunCommand("go", "mod", "tidy")
+	if err != nil {
+		fmt.Println(clr.Colorize("Error running go mod tidy:", "red"), err)
+	}
+
 	err = runner.RunCommand(binary, ProjectData.ProjectDir)
 	if err != nil {
 		fmt.Println(clr.Colorize("Error running go get:", "red"), err)

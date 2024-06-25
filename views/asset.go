@@ -11,7 +11,7 @@ func Asset(fileName string) ([]byte, error) {
 	// Get the current working directory
 	cwd, err := os.Getwd()
 	if err != nil {
-		return nil, fmt.Errorf("> error getting current working directory: %v", err)
+		return nil, fmt.Errorf(">>Gost>> error getting current working directory: %v", err)
 	}
 
 	// Construct the full path to the asset
@@ -20,7 +20,7 @@ func Asset(fileName string) ([]byte, error) {
 	// Read the file content
 	content, err := os.ReadFile(assetPath)
 	if err != nil {
-		return nil, fmt.Errorf("> error reading file %s: %v", assetPath, err)
+		return nil, fmt.Errorf(">>Gost>> error reading file %s: %v", assetPath, err)
 	}
 
 	return content, nil
