@@ -5,7 +5,7 @@ import (
 )
 
 type GenApiPlugin struct {
-	Files []string
+	Files map[string]func() string
 	Data  config.ProjectData
 }
 
@@ -58,8 +58,8 @@ func (g *GenApiPlugin) Generate(data config.ProjectData) error {
 
 func NewGenApiPlugin(data config.ProjectData) *GenApiPlugin {
 	return &GenApiPlugin{
-		Files: []string{
-			// Add files to be generated
+		Files: map[string]func() string{
+			"app/api/v1/api.go": func() string { return `package api` },
 		},
 		Data: data,
 	}
