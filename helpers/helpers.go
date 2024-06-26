@@ -30,6 +30,16 @@ import (
 	"github.com/theHamdiz/gost/tailwind"
 )
 
+// TODO: implement an env checker that can install anything for the user.
+type EnvChecker interface {
+	CheckDotEnvExists() bool
+	CheckGoInstalled() bool
+	CheckGitInstalled() bool
+	CheckNodeInstalled() bool
+	CheckAirInstalled() bool
+	CheckNpmInstalled() bool
+}
+
 var Config *cfg.GostConfig
 var ProjectData *genCfg.ProjectData
 
@@ -746,6 +756,7 @@ func NewProjectDataFromConfig(config *cfg.GostConfig) *genCfg.ProjectData {
 		AppName:             CapitalizeFirstLetter(config.AppName),
 		BackendPkg:          config.PreferredBackendFramework,
 		ComponentsFramework: config.PreferredComponentsFramework,
+		ConfigFile:          config.PreferredConfigFormat,
 		CurrentYear:         time.Now().Year(),
 		DbDriver:            config.PreferredDbDriver,
 		UiFramework:         config.PreferredUiFramework,
@@ -759,6 +770,7 @@ func NewProjectDataFromConfig(config *cfg.GostConfig) *genCfg.ProjectData {
 func generateProject(config *cfg.GostConfig) {
 	fmt.Println(clr.Colorize("App Name:", "teal"), clr.Colorize(ProjectData.AppName, "green"))
 	fmt.Println(clr.Colorize("Project Directory:", "teal"), clr.Colorize(ProjectData.ProjectDir, "green"))
+	fmt.Println(clr.Colorize("Project Config File:", "teal"), clr.Colorize(ProjectData.ConfigFile, "green"))
 	fmt.Println(clr.Colorize("UI Framework:", "teal"), clr.Colorize(ProjectData.UiFramework, ""))
 	fmt.Println(clr.Colorize("Component Framework:", "teal"), clr.Colorize(ProjectData.ComponentsFramework, ""))
 	fmt.Println(clr.Colorize("Backend Framework:", "teal"), clr.Colorize(ProjectData.BackendPkg, ""))
@@ -853,11 +865,6 @@ func generateProject(config *cfg.GostConfig) {
 		fmt.Println(clr.Colorize("Error running npm audit fix:", "red"), err)
 	}
 
-	err = runner.RunCommand("go", "mod", "tidy")
-	if err != nil {
-		fmt.Println(clr.Colorize("Error running go mod tidy:", "red"), err)
-	}
-
 	err = git.CheckGitInstalled()
 	if err != nil {
 		fmt.Println(err)
@@ -877,10 +884,12 @@ func generateProject(config *cfg.GostConfig) {
 		fmt.Println(clr.Colorize("Could not launch your preferred IDE: ", "red"), err)
 	}
 
-	err = runner.RunCommand("go", "mod", "tidy")
-	if err != nil {
-		fmt.Println(clr.Colorize("Error running go mod tidy:", "red"), err)
-	}
+	go func() {
+		err = runner.RunCommandWithDir(ProjectData.ProjectDir, "go", "mod", "tidy")
+		if err != nil {
+			fmt.Println(clr.Colorize("Error running go mod tidy:", "red"), err)
+		}
+	}()
 
 	err = runner.RunCommand(binary, ProjectData.ProjectDir)
 	if err != nil {

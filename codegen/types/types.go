@@ -5,19 +5,16 @@ import (
 	"github.com/theHamdiz/gost/config"
 )
 
-type Generator struct {
+type GenTypesPlugin struct {
 	Files map[string]func() string
+	Data  config.ProjectData
 }
 
-func (g *Generator) Generate(data config.ProjectData) error {
-	return general.GenerateFiles(data, g.Files)
-}
-
-func NewGenerator() *Generator {
-	return &Generator{
-		Files: map[string]func() string{
-			"app/types/core/gost.go": func() string {
-				return `package core
+func (g *GenTypesPlugin) Init() error {
+	// Initialize Files
+	g.Files = map[string]func() string{
+		"app/types/core/gost.go": func() string {
+			return `package core
 
 import (
     "context"
@@ -290,7 +287,55 @@ func NewRouter(backend string) Router {
     }
 }
 `
-			},
 		},
+	}
+
+	return nil
+}
+
+func (g *GenTypesPlugin) Execute() error {
+	return g.Generate(g.Data)
+}
+
+func (g *GenTypesPlugin) Shutdown() error {
+	// Any cleanup logic for the plugin
+	return nil
+}
+
+func (g *GenTypesPlugin) Name() string {
+	return "GenTypesPlugin"
+}
+
+func (g *GenTypesPlugin) Version() string {
+	return "1.0.0"
+}
+
+func (g *GenTypesPlugin) Dependencies() []string {
+	return []string{}
+}
+
+func (g *GenTypesPlugin) AuthorName() string {
+	return "Ahmad Hamdi"
+}
+
+func (g *GenTypesPlugin) AuthorEmail() string {
+	return "contact@hamdiz.me"
+}
+
+func (g *GenTypesPlugin) Website() string {
+	return "https://hamdiz.me"
+}
+
+func (g *GenTypesPlugin) GitHub() string {
+	return "https://github.com/theHamdiz/gost/gen/types"
+}
+
+func (g *GenTypesPlugin) Generate(data config.ProjectData) error {
+	return general.GenerateFiles(data, g.Files)
+}
+
+func NewGenTypesPlugin(data config.ProjectData) *GenTypesPlugin {
+	return &GenTypesPlugin{
+		Data: data,
 	}
 }

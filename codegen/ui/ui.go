@@ -5,22 +5,20 @@ import (
 	"github.com/theHamdiz/gost/config"
 )
 
-type Generator struct {
+type GenUiPlugin struct {
 	Files map[string]func() string
+	Data  config.ProjectData
 }
 
-func (g *Generator) Generate(data config.ProjectData) error {
-	return general.GenerateFiles(data, g.Files)
-}
-
-func NewGenerator() *Generator {
-	return &Generator{
-		Files: map[string]func() string{
-			"ui/embed.go": func() string {
-				return `package ui
+func (g *GenUiPlugin) Init() error {
+	// Initialize Files
+	g.Files = map[string]func() string{
+		"app/ui/embed.go": func() string {
+			return `package ui
 
 import (
 	"embed"
+	"io/fs"
 	"net/http"
 	{{- if eq .BackendPkg "echo" }}
 	"github.com/labstack/echo/v5"
@@ -34,7 +32,7 @@ import (
 //go:embed front/dist/* back/dist/*
 var uiFS embed.FS
 
-// RegisterRoutes -> registers the embedded static files with the provided router (Echo, Gin, Chi, or http.ServeMux)
+// RegisterRoutes -> registers the embedded static files with the chosen router (Echo, Gin, Chi, or http.ServeMux)
 func RegisterRoutes(mux interface{}) {
 	frontendFS, _ := fs.Sub(uiFS, "frontend/dist")
 	backendFS, _ := fs.Sub(uiFS, "backend/dist")
@@ -60,99 +58,142 @@ func RegisterRoutes(mux interface{}) {
 	}
 }
 			`
-			},
-			"ui/front/.env":     func() string { return `` },
-			"ui/back/.env":      func() string { return `` },
-			"ui/front/.env.dev": func() string { return `` },
-			"ui/back/.env.dev":  func() string { return `` },
-			"ui/.gitignore": func() string {
-				return `.DS_Store
-node_modules/*
-/dist
-
-# local env files
-.env.local
-.env.*.local
-.env.dev*
-
-
-# Log files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-`
-			},
-			"ui/front/README.md":   func() string { return `` },
-			"ui/back/README.md":    func() string { return `` },
-			"ui/README.md":         func() string { return `` },
-			"ui/front/index.html":  func() string { return `` },
-			"ui/back/index.html":   func() string { return `` },
-			"ui/back/signin.html":  func() string { return `` },
-			"ui/front/signin.html": func() string { return `` },
-			"ui/front/signup.html": func() string { return `` },
-			"ui/back/signup.html":  func() string { return `` },
-			"ui/front/package.json": func() string {
-				return `{
-  "name": "front",
-  "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "type": "module",
-  "prettier": {
-    "tabWidth": 4,
-    "printWidth": 110,
-  },
-  "devDependencies": {
-    "sass": "^1.45.0",
-    "vite": "^5.0.11"
-  }
-}`
-			},
-			"ui/back/package.json": func() string {
-				return `{
-  "name": "front",
-  "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "type": "module",
-  "prettier": {
-    "tabWidth": 4,
-    "printWidth": 110,
-  },
-  "devDependencies": {
-    "sass": "^1.45.0",
-    "vite": "^5.0.11"
-  }
-}`
-			},
-			"ui/back/public/style.css": func() string {
-				return ``
-			},
-			"ui/front/public/style.css": func() string {
-				return ``
-			},
-			"ui/back/public/index.js": func() string {
-				return ``
-			},
-			"ui/front/public/index.js": func() string {
-				return ``
-			},
 		},
+		"app/ui/frontend/package.json": func() string {
+			return `{
+  "name": "front",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "type": "module",
+  "prettier": {
+    "tabWidth": 4,
+    "printWidth": 110,
+  },
+  "devDependencies": {
+    "sass": "^1.45.0",
+    "vite": "^5.0.11"
+  }
+}`
+		},
+		"app/ui/frontend/.env":           func() string { return `` },
+		"app/ui/frontend/.env.dev":       func() string { return `` },
+		"app/ui/frontend/robots.txt":     func() string { return `` },
+		"app/ui/frontend/vite.config.js": func() string { return `` },
+		"app/ui/public/index.html":       func() string { return `` },
+		"app/ui/frontend/README.md":      func() string { return `` },
+		"app/ui/README.md":               func() string { return `` },
+		"app/ui/frontend/index.html":     func() string { return `` },
+		"app/ui/frontend/pages/signin.templ": func() string {
+			return `package signin
+		templ Signin(){
+		}
+		`
+		},
+		"app/ui/frontend/pages/signup.templ": func() string {
+			return `package signup
+		templ Signup(){
+		}
+		`
+		},
+		"app/ui/frontend/assets/css/style.css": func() string {
+			return ``
+		},
+		"app/ui/frontend/assets/js/index.js": func() string {
+			return ``
+		},
+		"app/ui/frontend/components/index.js": func() string { return `` },
+		"app/ui/frontend/pages/index.js":      func() string { return `` },
+		"app/ui/frontend/store/index.js":      func() string { return `` },
+
+		"app/ui/backend/package.json": func() string {
+			return `{
+  "name": "front",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "type": "module",
+  "prettier": {
+    "tabWidth": 4,
+    "printWidth": 110,
+  },
+  "devDependencies": {
+    "sass": "^1.45.0",
+    "vite": "^5.0.11"
+  }
+}`
+		},
+		"app/ui/backend/vite.config.js": func() string { return `` },
+		"app/ui/backend/.env":           func() string { return `` },
+		"app/ui/backend/.env.dev":       func() string { return `` },
+		"app/ui/backend/robots.txt":     func() string { return `` },
+		"app/ui/backend/README.md":      func() string { return `` },
+		"app/ui/backend/assets/css/style.css": func() string {
+			return ``
+		},
+		"app/ui/backend/assets/js/index.js": func() string {
+			return ``
+		},
+		"app/ui/backend/components/index.js": func() string { return `` },
+		"app/ui/backend/pages/index.js":      func() string { return `` },
+		"app/ui/backend/store/index.js":      func() string { return `` },
+		"app/ui/backend/index.html":          func() string { return `` },
+		"app/ui/backend/signin.html":         func() string { return `` },
+		"app/ui/backend/signup.html":         func() string { return `` },
+	}
+
+	return nil
+}
+
+func (g *GenUiPlugin) Execute() error {
+	return g.Generate(g.Data)
+}
+
+func (g *GenUiPlugin) Shutdown() error {
+	// Any cleanup logic for the plugin
+	return nil
+}
+
+func (g *GenUiPlugin) Name() string {
+	return "GenUiPlugin"
+}
+
+func (g *GenUiPlugin) Version() string {
+	return "1.0.0"
+}
+
+func (g *GenUiPlugin) Dependencies() []string {
+	return []string{}
+}
+
+func (g *GenUiPlugin) AuthorName() string {
+	return "Ahmad Hamdi"
+}
+
+func (g *GenUiPlugin) AuthorEmail() string {
+	return "contact@hamdiz.me"
+}
+
+func (g *GenUiPlugin) Website() string {
+	return "https://hamdiz.me"
+}
+
+func (g *GenUiPlugin) GitHub() string {
+	return "https://github.com/theHamdiz/gost/gen/ui"
+}
+
+func (g *GenUiPlugin) Generate(data config.ProjectData) error {
+	return general.GenerateFiles(data, g.Files)
+}
+
+func NewGenUiPlugin(data config.ProjectData) *GenUiPlugin {
+	return &GenUiPlugin{
+		Data: data,
 	}
 }

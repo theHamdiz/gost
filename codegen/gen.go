@@ -27,23 +27,16 @@ func ExecuteGeneration(data config.ProjectData) error {
 		cfg.NewGenConfPlugin(data),
 		db.NewGenDbPlugin(data),
 		events.NewGenEventsPlugin(data),
-		files.NewGenerator(),
-		handlers.NewGenerator(),
-		middleware.NewGenerator(),
-		genPlugins.NewGenerator(),
-		router.NewGenerator(),
-		services.NewGenerator(),
-		views.NewGenerator(),
-		files.NewGenerator(),
-		types.NewGenerator(),
-		ui.NewGenerator(),
+		files.NewGenFilesPlugin(data),
+		handlers.NewGenHandlersPlugin(data),
+		middleware.NewGenMiddlewarePlugin(data),
+		genPlugins.NewGenPluginsPlugin(data),
+		router.NewGenRouterPlugin(data),
+		services.NewGenServicesPlugin(data),
+		views.NewGenViewsPlugin(data),
+		types.NewGenTypesPlugin(data),
+		ui.NewGenUiPlugin(data),
 	}
-
-	//for _, generator := range generators {
-	//	if err := generator.Generate(data); err != nil {
-	//		return err
-	//	}
-	//}
 
 	pmConfig := &pmCfg.PluginManagerConfig{
 		PluginsDir: "plugins",
@@ -58,14 +51,16 @@ func ExecuteGeneration(data config.ProjectData) error {
 		fmt.Println(err)
 	}
 
+	defer func() {
+		if err := pm.ShutdownPlugins(); err != nil {
+			fmt.Println("Error during plugin shutdown:", err)
+		}
+	}()
+
 	err = pm.ExecutePlugins()
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	err = pm.ShutdownPlugins()
-	if err != nil {
-		fmt.Println(err)
-	}
 	return nil
 }

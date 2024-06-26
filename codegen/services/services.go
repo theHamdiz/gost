@@ -5,19 +5,16 @@ import (
 	"github.com/theHamdiz/gost/config"
 )
 
-type Generator struct {
+type GenServicesPlugin struct {
 	Files map[string]func() string
+	Data  config.ProjectData
 }
 
-func (g *Generator) Generate(data config.ProjectData) error {
-	return general.GenerateFiles(data, g.Files)
-}
-
-func NewGenerator() *Generator {
-	return &Generator{
-		Files: map[string]func() string{
-			"app/services/logger.go": func() string {
-				return `package services
+func (g *GenServicesPlugin) Init() error {
+	// Initialize Files
+	g.Files = map[string]func() string{
+		"app/services/logger.go": func() string {
+			return `package services
 
 import (
     "log"
@@ -42,9 +39,9 @@ func Error(message string) {
     ErrorLogger.Println(message)
 }
 `
-			},
-			"app/services/rateLimiter.go": func() string {
-				return `package services
+		},
+		"app/services/rateLimiter.go": func() string {
+			return `package services
 
 import (
     "golang.org/x/time/rate"
@@ -60,7 +57,55 @@ func Allow() bool {
     return limiter.Allow()
 }
 `
-			},
 		},
+	}
+
+	return nil
+}
+
+func (g *GenServicesPlugin) Execute() error {
+	return g.Generate(g.Data)
+}
+
+func (g *GenServicesPlugin) Shutdown() error {
+	// Any cleanup logic for the plugin
+	return nil
+}
+
+func (g *GenServicesPlugin) Name() string {
+	return "GenServicesPlugin"
+}
+
+func (g *GenServicesPlugin) Version() string {
+	return "1.0.0"
+}
+
+func (g *GenServicesPlugin) Dependencies() []string {
+	return []string{}
+}
+
+func (g *GenServicesPlugin) AuthorName() string {
+	return "Ahmad Hamdi"
+}
+
+func (g *GenServicesPlugin) AuthorEmail() string {
+	return "contact@hamdiz.me"
+}
+
+func (g *GenServicesPlugin) Website() string {
+	return "https://hamdiz.me"
+}
+
+func (g *GenServicesPlugin) GitHub() string {
+	return "https://github.com/theHamdiz/gost/gen/services"
+}
+
+func (g *GenServicesPlugin) Generate(data config.ProjectData) error {
+	return general.GenerateFiles(data, g.Files)
+}
+
+func NewGenServicesPlugin(data config.ProjectData) *GenServicesPlugin {
+	return &GenServicesPlugin{
+		Data: data,
 	}
 }

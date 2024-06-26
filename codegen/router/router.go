@@ -5,19 +5,16 @@ import (
 	"github.com/theHamdiz/gost/config"
 )
 
-type Generator struct {
+type GenRouterPlugin struct {
 	Files map[string]func() string
+	Data  config.ProjectData
 }
 
-func (g *Generator) Generate(data config.ProjectData) error {
-	return general.GenerateFiles(data, g.Files)
-}
-
-func NewGenerator() *Generator {
-	return &Generator{
-		Files: map[string]func() string{
-			"app/router/router.go": func() string {
-				return `package router
+func (g *GenRouterPlugin) Init() error {
+	// Initialize Files
+	g.Files = map[string]func() string{
+		"app/router/router.go": func() string {
+			return `package router
 
 import (
     "{{.AppName}}/app/handlers"
@@ -82,7 +79,55 @@ func InitRoutes(backend string) prelude.Router {
     return router
 }
 `
-			},
 		},
+	}
+
+	return nil
+}
+
+func (g *GenRouterPlugin) Execute() error {
+	return g.Generate(g.Data)
+}
+
+func (g *GenRouterPlugin) Shutdown() error {
+	// Any cleanup logic for the plugin
+	return nil
+}
+
+func (g *GenRouterPlugin) Name() string {
+	return "GenRouterPlugin"
+}
+
+func (g *GenRouterPlugin) Version() string {
+	return "1.0.0"
+}
+
+func (g *GenRouterPlugin) Dependencies() []string {
+	return []string{}
+}
+
+func (g *GenRouterPlugin) AuthorName() string {
+	return "Ahmad Hamdi"
+}
+
+func (g *GenRouterPlugin) AuthorEmail() string {
+	return "contact@hamdiz.me"
+}
+
+func (g *GenRouterPlugin) Website() string {
+	return "https://hamdiz.me"
+}
+
+func (g *GenRouterPlugin) GitHub() string {
+	return "https://github.com/theHamdiz/gost/gen/router"
+}
+
+func (g *GenRouterPlugin) Generate(data config.ProjectData) error {
+	return general.GenerateFiles(data, g.Files)
+}
+
+func NewGenRouterPlugin(data config.ProjectData) *GenRouterPlugin {
+	return &GenRouterPlugin{
+		Data: data,
 	}
 }

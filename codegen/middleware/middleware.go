@@ -5,19 +5,16 @@ import (
 	"github.com/theHamdiz/gost/config"
 )
 
-type Generator struct {
+type GenMiddlewarePlugin struct {
 	Files map[string]func() string
+	Data  config.ProjectData
 }
 
-func (g *Generator) Generate(data config.ProjectData) error {
-	return general.GenerateFiles(data, g.Files)
-}
-
-func NewGenerator() *Generator {
-	return &Generator{
-		Files: map[string]func() string{
-			"app/middleware/recoverer.go": func() string {
-				return `package middleware
+func (g *GenMiddlewarePlugin) Init() error {
+	// Initialize Files
+	g.Files = map[string]func() string{
+		"app/middleware/recoverer.go": func() string {
+			return `package middleware
 
 import (
     "log"
@@ -35,11 +32,12 @@ func Recoverer(next http.Handler) http.Handler {
         }
     }()
     next.ServeHTTP(w, r)
+})
 }
 `
-			},
-			"app/middleware/rateLimiter.go": func() string {
-				return `package middleware
+		},
+		"app/middleware/rateLimiter.go": func() string {
+			return `package middleware
 
 import (
     "net/http"
@@ -62,9 +60,9 @@ func RateLimiter(limit rate.Limit, burst int) func(http.Handler) http.Handler {
     }
 }
 `
-			},
-			"app/middleware/requestId.go": func() string {
-				return `package middleware
+		},
+		"app/middleware/requestId.go": func() string {
+			return `package middleware
 
 import (
     "context"
@@ -92,9 +90,9 @@ func GetRequestID(r *http.Request) string {
     return ""
 }
 `
-			},
-			"app/middleware/auth.go": func() string {
-				return `package middleware
+		},
+		"app/middleware/auth.go": func() string {
+			return `package middleware
 
 import (
     "net/http"
@@ -114,9 +112,9 @@ func Auth(next http.Handler) http.Handler {
     })
 }
 `
-			},
-			"app/middleware/cors.go": func() string {
-				return `package middleware
+		},
+		"app/middleware/cors.go": func() string {
+			return `package middleware
 
 import (
     "net/http"
@@ -137,9 +135,9 @@ func CORS(next http.Handler) http.Handler {
     })
 }
 `
-			},
-			"app/middleware/logger.go": func() string {
-				return `package middleware
+		},
+		"app/middleware/logger.go": func() string {
+			return `package middleware
 
 import (
     "log"
@@ -155,9 +153,9 @@ func Logger(next http.Handler) http.Handler {
     })
 }
 `
-			},
-			"app/middleware/notifier.go": func() string {
-				return `package middleware
+		},
+		"app/middleware/notifier.go": func() string {
+			return `package middleware
 
 import (
     "context"
@@ -242,7 +240,55 @@ func notifyByEmail(subject, body string) {
     }
 }
 `
-			},
 		},
+	}
+
+	return nil
+}
+
+func (g *GenMiddlewarePlugin) Execute() error {
+	return g.Generate(g.Data)
+}
+
+func (g *GenMiddlewarePlugin) Shutdown() error {
+	// Any cleanup logic for the plugin
+	return nil
+}
+
+func (g *GenMiddlewarePlugin) Name() string {
+	return "GenMiddlewarePlugin"
+}
+
+func (g *GenMiddlewarePlugin) Version() string {
+	return "1.0.0"
+}
+
+func (g *GenMiddlewarePlugin) Dependencies() []string {
+	return []string{}
+}
+
+func (g *GenMiddlewarePlugin) AuthorName() string {
+	return "Ahmad Hamdi"
+}
+
+func (g *GenMiddlewarePlugin) AuthorEmail() string {
+	return "contact@hamdiz.me"
+}
+
+func (g *GenMiddlewarePlugin) Website() string {
+	return "https://hamdiz.me"
+}
+
+func (g *GenMiddlewarePlugin) GitHub() string {
+	return "https://github.com/theHamdiz/gost/gen/middleware"
+}
+
+func (g *GenMiddlewarePlugin) Generate(data config.ProjectData) error {
+	return general.GenerateFiles(data, g.Files)
+}
+
+func NewGenMiddlewarePlugin(data config.ProjectData) *GenMiddlewarePlugin {
+	return &GenMiddlewarePlugin{
+		Data: data,
 	}
 }

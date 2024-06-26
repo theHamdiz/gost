@@ -1,23 +1,20 @@
-package views
+package templates
 
 import (
 	"github.com/theHamdiz/gost/codegen/general"
 	"github.com/theHamdiz/gost/config"
 )
 
-type Generator struct {
+type GenViewsPlugin struct {
 	Files map[string]func() string
+	Data  config.ProjectData
 }
 
-func (g *Generator) Generate(data config.ProjectData) error {
-	return general.GenerateFiles(data, g.Files)
-}
-
-func NewGenerator() *Generator {
-	return &Generator{
-		Files: map[string]func() string{
-			"app/views/components/head.templ": func() string {
-				return `package head
+func (g *GenViewsPlugin) Init() error {
+	// Initialize Files
+	g.Files = map[string]func() string{
+		"app/ui/components/head.templ": func() string {
+			return `package head
 
 templ Head(title, css, js){
     <head>
@@ -36,9 +33,9 @@ templ Head(title, css, js){
 	</head>
 }
 `
-			},
-			"app/views/layouts/base.templ": func() string {
-				return `package layouts
+		},
+		"app/ui/layouts/base.templ": func() string {
+			return `package layouts
 
 import "{{.AppName}}/app/views"
 
@@ -53,12 +50,12 @@ templ Base(title, css, js string){
 	</html>
 }
 `
-			},
-			"app/views/layouts/app.templ": func() string {
-				return `package layouts
+		},
+		"app/ui/layouts/app.templ": func() string {
+			return `package layouts
 
 var (
-	title = "gost project"
+	title = "{{.AppName}}"
 )
 
 templ App() {
@@ -70,9 +67,9 @@ templ App() {
 	}
 }
 `
-			},
-			"app/views/components/header/header.templ": func() string {
-				return `package components
+		},
+		"app/ui/components/header/header.templ": func() string {
+			return `package components
 
 templ Header(){
 	<header>
@@ -80,9 +77,9 @@ templ Header(){
     </header>
 }
 `
-			},
-			"app/views/components/footer/footer.templ": func() string {
-				return `package components
+		},
+		"app/ui/components/footer/footer.templ": func() string {
+			return `package components
 
 templ Footer(){
 	<footer>
@@ -90,27 +87,27 @@ templ Footer(){
     </footer>
 }
 `
-			},
-			"app/views/pages/home.templ": func() string {
-				return `package pages
+		},
+		"app/ui/pages/home.templ": func() string {
+			return `package pages
 
 templ Home(){
 	<h2>Home Page</h2>
 	<p>This is the home page.</p>
 }
 `
-			},
-			"app/views/pages/about.templ": func() string {
-				return `package pages
+		},
+		"app/ui/pages/about.templ": func() string {
+			return `package pages
 
 templ About(){
 	<h2>About Page</h2>
 	<p>This is the about page.</p>
 }
 `
-			},
-			"app/views/components/navigation/sidebar.templ": func() string {
-				return `package navigation
+		},
+		"app/ui/components/navigation/sidebar.templ": func() string {
+			return `package navigation
 
 templ Sidebar(){
 	<div>
@@ -122,9 +119,9 @@ templ Sidebar(){
 	</div>
 }
 `
-			},
-			"app/views/views.go": func() string {
-				return `package views
+		},
+		"app/ui/views.go": func() string {
+			return `package views
 
 import (
 	"fmt"
@@ -152,23 +149,71 @@ func Asset(fileName string) ([]byte, error) {
 	return content, nil
 }
 `
-			},
-			"app/views/errors/404.templ": func() string {
-				return `package errors
+		},
+		"app/ui/errors/404.templ": func() string {
+			return `package errors
 
 templ _404(){
 	<div>404 Page Not Found</div>
 }
 `
-			},
-			"app/views/errors/500.templ": func() string {
-				return `package errors
+		},
+		"app/ui/errors/500.templ": func() string {
+			return `package errors
 
 templ _500(){
 		<div>500 Internal Server Error</div>
 }
 `
-			},
 		},
+	}
+
+	return nil
+}
+
+func (g *GenViewsPlugin) Execute() error {
+	return g.Generate(g.Data)
+}
+
+func (g *GenViewsPlugin) Shutdown() error {
+	// Any cleanup logic for the plugin
+	return nil
+}
+
+func (g *GenViewsPlugin) Name() string {
+	return "GenViewsPlugin"
+}
+
+func (g *GenViewsPlugin) Version() string {
+	return "1.0.0"
+}
+
+func (g *GenViewsPlugin) Dependencies() []string {
+	return []string{}
+}
+
+func (g *GenViewsPlugin) AuthorName() string {
+	return "Ahmad Hamdi"
+}
+
+func (g *GenViewsPlugin) AuthorEmail() string {
+	return "contact@hamdiz.me"
+}
+
+func (g *GenViewsPlugin) Website() string {
+	return "https://hamdiz.me"
+}
+
+func (g *GenViewsPlugin) GitHub() string {
+	return "https://github.com/theHamdiz/gost/gen/views"
+}
+
+func (g *GenViewsPlugin) Generate(data config.ProjectData) error {
+	return general.GenerateFiles(data, g.Files)
+}
+
+func NewGenViewsPlugin(data config.ProjectData) *GenViewsPlugin {
+	return &GenViewsPlugin{
+		Data: data,
 	}
 }

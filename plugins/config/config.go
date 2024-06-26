@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -17,7 +18,12 @@ func LoadConfig(filePath string) (*PluginConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(file)
 
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&config.Settings); err != nil {
