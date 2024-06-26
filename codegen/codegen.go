@@ -13,9 +13,8 @@ import (
 	genPlugins "github.com/theHamdiz/gost/codegen/plugins"
 	"github.com/theHamdiz/gost/codegen/router"
 	"github.com/theHamdiz/gost/codegen/services"
-	"github.com/theHamdiz/gost/codegen/temmlatplates"
-	"github.com/theHamdiz/gost/codegen/typespes"
-	"github.com/theHamdiz/gost/codegen/ui
+	"github.com/theHamdiz/gost/codegen/types"
+	"github.com/theHamdiz/gost/codegen/ui"
 	"github.com/theHamdiz/gost/config"
 	"github.com/theHamdiz/gost/plugins"
 	pmCfg "github.com/theHamdiz/gost/plugins/config"
@@ -33,7 +32,6 @@ func ExecuteGeneration(data config.ProjectData) error {
 		genPlugins.NewGenPluginsPlugin(data),
 		router.NewGenRouterPlugin(data),
 		services.NewGenServicesPlugin(data),
-		templates.NewGenViewsPlugin(data),
 		types.NewGenTypesPlugin(data),
 		ui.NewGenUiPlugin(data),
 	}

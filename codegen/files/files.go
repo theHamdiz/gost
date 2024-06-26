@@ -3,7 +3,6 @@ package files
 import (
 	"github.com/theHamdiz/gost/codegen/general"
 	"github.com/theHamdiz/gost/config"
-	"github.com/theHamdiz/gost/helpers"
 )
 
 type GenFilesPlugin struct {
@@ -100,8 +99,6 @@ require {{.VersionedBackendImport}}
 			return ``
 		},
 		"README.md": func() string {
-			config.ProjectData.AppName = helpers.CapitalizeFirstLetter(config.ProjectData.AppName)
-
 			return "# {{ .AppName }}\n\n" +
 				"A brief description of what your project does.\n\n" +
 				"## Features\n\n" +
