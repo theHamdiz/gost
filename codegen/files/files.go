@@ -105,6 +105,7 @@ require {{.VersionedBackendImport}}
 				"- Feature 1\n" +
 				"- Feature 2\n" +
 				"- Feature 3\n\n" +
+				"- Feature 4\n\n" +
 				"## Installation\n\n" +
 				"To install and run this project, follow these steps:\n\n" +
 				"1. Clone the repository:\n\n" +
