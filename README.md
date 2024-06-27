@@ -81,7 +81,7 @@ gost r
 By default, gost creates the following structure for you:
 
 ```		
-    ├── app
+├── app
 │   ├── api
 │   │   └── v1
 │   ├── assets
