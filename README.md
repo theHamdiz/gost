@@ -78,11 +78,9 @@ gost r
 
 ### Project Structure
 
-By default gost creates the following structure for you:
+By default, gost creates the following structure for you:
 
-```
-"```
-			
+```		
     ├── app
 │   ├── api
 │   │   └── v1
