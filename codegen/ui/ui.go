@@ -71,7 +71,7 @@ func RegisterRoutes(mux interface{}) {
   "type": "module",
   "prettier": {
     "tabWidth": 4,
-    "printWidth": 110,
+    "printWidth": 110
   },
   "devDependencies": {
     "sass": "^1.45.0",
@@ -120,7 +120,7 @@ func RegisterRoutes(mux interface{}) {
   "type": "module",
   "prettier": {
     "tabWidth": 4,
-    "printWidth": 110,
+    "printWidth": 110
   },
   "devDependencies": {
     "sass": "^1.45.0",
