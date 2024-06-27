@@ -39,7 +39,7 @@ init:
 
 # Run target
 run:
-	$(GORUN) $(MAIN_FILE) create $(TEST_PROJECT)
+	$(GORUN) $(MAIN_FILE)
 
 # Build target
 build:

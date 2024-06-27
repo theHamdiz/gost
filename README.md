@@ -51,13 +51,13 @@ go run cmd/app/main.go
 To create a project, use:
 
 ```sh
-gost create
+gost create appName
 ```
 
 or
 
 ```sh
-gost c
+gost c appName
 ```
 
 > Anywhere in gost, if you can use create as a command you can also use init & new to do the same thing, they're all synonyms for each other.
@@ -81,16 +81,147 @@ gost r
 By default gost creates the following structure for you:
 
 ```
-.
-├── cmd             # Main applications of the project
-├── app             # Private application and library code
-├── pkg             # Public library code
-├── web             # Web server-related files
-│   ├── static      # Static files
-│   └── templates   # HTML templates
-├── go.mod          # Go module file
-├── main.go         # Main entry point of the application
-└── README.md       # This file
+"```
+			
+    ├── app
+│   ├── api
+│   │   └── v1
+│   ├── assets
+│   │   └── static
+│   │       ├── css
+│   │       ├── img
+│   │       └── js
+│   ├── cfg
+│   │   └── cfg.go
+│   ├── db
+│   │   ├── migrations
+│   │   │   ├── create_db_1719424521947950600.sql
+│   │   │   └── create_db_1719424522725851300.sql
+│   │   ├── data.db
+│   │   └── db.go
+│   ├── events
+│   │   └── events.go
+│   ├── handlers
+│   │   ├── api
+│   │   │   └── api.go
+│   │   ├── backend
+│   │   │   ├── about.go
+│   │   │   ├── auth.go
+│   │   │   ├── landing.go
+│   │   │   └── views.go
+│   │   └── frontend
+│   │       ├── about.go
+│   │       ├── auth.go
+│   │       ├── landing.go
+│   │       └── views.go
+│   ├── middleware
+│   │   ├── auth.go
+│   │   ├── cors.go
+│   │   ├── logger.go
+│   │   ├── notifier.go
+│   │   ├── rateLimiter.go
+│   │   ├── recoverer.go
+│   │   └── requestId.go
+│   ├── router
+│   │   └── router.go
+│   ├── services
+│   │   ├── db.go
+│   │   ├── logger.go
+│   │   └── rateLimiter.go
+│   ├── types
+│   │   ├── core
+│   │   │   └── gost.go
+│   │   └── models
+│   └── ui
+│       ├── backend
+│       │   ├── assets
+│       │   │   ├── css
+│       │   │   └── js
+│       │   ├── components
+│       │   │   └── index.js
+│       │   ├── pages
+│       │   │   └── index.js
+│       │   ├── store
+│       │   │   └── index.js
+│       │   ├── README.md
+│       │   ├── index.html
+│       │   ├── package.json
+│       │   ├── robots.txt
+│       │   ├── signin.html
+│       │   ├── signup.html
+│       │   └── vite.config.js
+│       ├── components
+│       │   ├── footer
+│       │   │   └── footer.templ
+│       │   ├── header
+│       │   │   └── header.templ
+│       │   ├── navigation
+│       │   │   └── sidebar.templ
+│       │   └── head.templ
+│       ├── errors
+│       │   ├── 404.templ
+│       │   └── 500.templ
+│       ├── frontend
+│       │   ├── assets
+│       │   │   ├── css
+│       │   │   └── js
+│       │   ├── components
+│       │   │   └── index.js
+│       │   ├── pages
+│       │   │   ├── index.js
+│       │   │   ├── signin.templ
+│       │   │   └── signup.templ
+│       │   ├── store
+│       │   │   └── index.js
+│       │   ├── README.md
+│       │   ├── index.html
+│       │   ├── package.json
+│       │   ├── robots.txt
+│       │   └── vite.config.js
+│       ├── layouts
+│       │   ├── app.templ
+│       │   └── base.templ
+│       ├── pages
+│       │   ├── about.templ
+│       │   └── home.templ
+│       ├── public
+│       │   └── index.html
+│       ├── shared
+│       ├── README.md
+│       ├── embed.go
+│       └── views.go
+├── cmd
+│   ├── app
+│   │   └── main.go
+│   └── scripts
+├── log
+├── plugins
+│   ├── auth
+│   ├── core
+│   │   ├── config.go
+│   │   └── core.go
+│   └── db
+│       ├── dialects
+│       │   ├── db2.go
+│       │   ├── dialects.go
+│       │   ├── firebird.go
+│       │   ├── mariadb.go
+│       │   ├── mysql.go
+│       │   ├── oracle.go
+│       │   ├── postgresql.go
+│       │   ├── sqlite.go
+│       │   └── sqlserver.go
+│       └── db.go
+├── public
+│   └── assets
+├── storage
+├── Makefile
+├── README.md
+├── go.mod
+├── go.sum
+├── package-lock.json
+└── package.json
+` 
 ```
 
 ### Running Tests
