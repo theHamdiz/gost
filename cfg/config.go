@@ -13,10 +13,17 @@ import (
 
 	"github.com/pelletier/go-toml"
 	"github.com/theHamdiz/gost/clr"
+	"gopkg.in/yaml.v3"
 )
 
 type GostConfig struct {
+	AppId                        string
+	AppKey                       string
 	AppName                      string
+	DatabaseURI                  string
+	EnvFile                      string
+	EnvPassword                  string
+	EnvUserName                  string
 	GlobalSettings               string
 	PreferredBackendFramework    string
 	PreferredComponentsFramework string
@@ -27,6 +34,17 @@ type GostConfig struct {
 	PreferredIDE                 string
 	PreferredPort                int
 	PreferredUiFramework         string
+	RedisDb                      string
+	RedisPassword                string
+	RedisURI                     string
+	Server                       string
+}
+
+type Configurable interface {
+	SaveAsEnv(filePath string) error
+	SaveAsJSON(filePath string) error
+	SaveAsTOML(filePath string) error
+	SaveAsYAML(filePath string) error
 }
 
 func (config *GostConfig) SaveAsEnv(filePath string) error {
@@ -120,6 +138,22 @@ func (config *GostConfig) SaveAsTOML(filePath string) error {
 	}(file)
 
 	encoder := toml.NewEncoder(file)
+	return encoder.Encode(config)
+}
+
+func (config *GostConfig) SaveAsYAML(filePath string) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(">>Gost>> Error closing file:", err)
+		}
+	}(file)
+
+	encoder := yaml.NewEncoder(file)
 	return encoder.Encode(config)
 }
 

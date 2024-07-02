@@ -20,20 +20,25 @@ func (g *GenConfPlugin) Init() error {
 )
 
 type Config struct {
-    GostEnv                      string
-    Port                         string
-    DbDriver                     string
-    DbUser                       string
-    DbHost                       string
-    DbPassword                   string
-    DbName                       string
-    DbOrm						 string
-    MigrationsDir                string
-    GostSecret                   string
-    GostAuthRedirectAfterLogin   string
-    GostAuthSessionExpiryInHours string
-    GostAuthSkipVerify           bool
-    GostBackend                  string
+	AppName						 string
+	DbDriver                     string
+	DbHost                       string
+	DbName                       string
+	DbOrm						 string
+	DbPassword                   string
+	DbUri						 string
+	DbUser                       string
+	GostAuthRedirectAfterLogin   string
+	GostAuthSessionExpiryInHours string
+	GostAuthSkipVerify           bool
+	GostBackend                  string
+	GostEnv                      string
+	GostSecret                   string
+	MigrationsDir                string
+	Port                         string
+	RedisDb						 string
+	RedisPassword				 string
+	RedisUri					 string
 }
 
 func (c *Config) IsDevelopment(){

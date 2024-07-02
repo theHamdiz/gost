@@ -25,7 +25,7 @@ type {{ .ResourceName }} struct {
 }
 `
 		},
-		"app/ui/frontend/router/{{ .ResourceName }}.js": func() string {
+		"app/web/frontend/router/{{ .ResourceName }}.js": func() string {
 			return `import React from 'react';
 import { Route, Switch } from 'react-router-dom';
 import {{ .ResourceName }}Page from '../pages/{{ .ResourceName }}Page';

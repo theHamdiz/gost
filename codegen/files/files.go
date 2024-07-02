@@ -1,21 +1,21 @@
 package files
 
 import (
-    "strings"
+	"strings"
 
-    "github.com/theHamdiz/gost/codegen/general"
-    "github.com/theHamdiz/gost/config"
+	"github.com/theHamdiz/gost/codegen/general"
+	"github.com/theHamdiz/gost/config"
 )
 
 type GenFilesPlugin struct {
-    Files map[string]func() string
-    Data  config.ProjectData
+	Files map[string]func() string
+	Data  config.ProjectData
 }
 
 func (g *GenFilesPlugin) Init() error {
-    g.Files = map[string]func() string{
-        "cmd/app/main.go": func() string {
-            return `package main
+	g.Files = map[string]func() string{
+		"cmd/server/main.go": func() string {
+			return `package main
 
 import (
 	{{- if eq .BackendPkg "echo" }}
@@ -88,53 +88,128 @@ func main() {
     waitForShutdown()
 }
 `
-        },
-        "go.mod": func() string {
-            return `module {{.AppName}}
+		},
+		"cmd/worker/main.go": func() string {
+			return `package worker
+
+import (
+	{{- if eq .BackendPkg "echo" }}
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
+	{{- end }}
+    "{{.AppName}}/app/cfg"
+    "{{.AppName}}/app/db"
+    {{- if eq .BackendPkg "chi" }}
+    "github.com/go-chi/chi/v5"
+    "github.com/go-chi/chi/v5/middleware"
+    {{- end }}
+    {{- if eq .BackendPkg "gin" }}
+    "github.com/gin-gonic/gin"
+    "github.com/gin-gonic/gin/middleware"
+    {{- end }}
+    "log"
+	{{- if eq .BackendPkg "std" }}
+    "net/http"
+	{{- end }}
+	"os"
+    "os/signal"
+    "syscall"
+    "{{.AppName}}/app/router"
+)
+
+func waitForShutdown() {
+    // Create a channel to receive OS signals
+    sigs := make(chan os.Signal, 1)
+    // Notify the channel of SIGINT and SIGTERM signals
+    signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+    // Block until a signal is received
+    sig := <- sigs
+    log.Printf("Received signal: %s", sig)
+}
+
+func main() {
+    c := cfg.LoadConfig()
+    logger.InitLogger()
+    db.InitDB(c)
+    defer db.CloseDB()
+
+    server := router.InitRoutes()
+
+    log.Println("Server starting on port", cfg.Port)
+    go func() {
+        {{- if eq .BackendPkg "gin" }}
+        if err := server.(*gin.Engine).Run(":" + cfg.Port); err != nil {
+            log.Fatal(err)
+        }
+        {{- end }}
+        {{- if eq .BackendPkg "echo" }}
+        if err := server.(*echo.Echo).Start(":" + cfg.Port); err != nil {
+            log.Fatal(err)
+        }
+        {{- end }}
+        {{- if eq .BackendPkg "chi" }}
+        if err := http.ListenAndServe(":" + cfg.Port, server.(http.Handler)); err != nil {
+            log.Fatal(err)
+        }
+        {{- end }}
+        {{- if eq .BackendPkg "std" }}
+        if err := http.ListenAndServe(":" + cfg.Port, server.(http.Handler)); err != nil {
+            log.Fatal(err)
+        }
+        {{- end }}
+    }()
+
+    waitForShutdown()
+}
+`
+		},
+		"go.mod": func() string {
+			return `module {{.AppName}}
 
 go 1.22.4
 
 require {{.VersionedBackendImport}}
 `
-        },
-        "go.sum": func() string {
-            return ``
-        },
-        "README.md": func() string {
-            return "# {{ .AppName }}\n\n" +
-                "A brief description of what your project does.\n\n" +
-                "## Features\n\n" +
-                "- Feature 1\n" +
-                "- Feature 2\n" +
-                "- Feature 3\n\n" +
-                "- Feature 4\n\n" +
-                "## Installation\n\n" +
-                "To install and run this project, follow these steps:\n\n" +
-                "1. Clone the repository:\n\n" +
-                "```sh\n" +
-                "git clone https://github.com/yourusername/yourproject.git\n" +
-                "cd yourproject\n" +
-                "```\n\n" +
-                "2. Install dependencies if not already installed:\n\n" +
-                "```sh\n" +
-                "go mod tidy\n" +
-                "```\n\n" +
-                "3. Set up environment variables (if any):\n\n" +
-                "```sh\n" +
-                "cp .gost.env .env\n" +
-                "# Edit the .env file with your configuration\n" +
-                "```\n\n" +
-                "## Usage\n\n" +
-                "### Running the Project\n\n" +
-                "To start the project, use:\n\n" +
-                "```sh\n" +
-                "gost r\n" +
-                "```\n\n" +
-                "### Project Structure\n\n" +
-                "By default gost creates the following structure for you:\n\n" +
-                "```\n" +
-                ".\n" +
-                `├── app
+		},
+		"go.sum": func() string {
+			return ``
+		},
+		"README.md": func() string {
+			return "# {{ .AppName }}\n\n" +
+				"A brief description of what your project does.\n\n" +
+				"## Features\n\n" +
+				"- Feature 1\n" +
+				"- Feature 2\n" +
+				"- Feature 3\n\n" +
+				"- Feature 4\n\n" +
+				"## Installation\n\n" +
+				"To install and run this project, follow these steps:\n\n" +
+				"1. Clone the repository:\n\n" +
+				"```sh\n" +
+				"git clone https://github.com/yourusername/yourproject.git\n" +
+				"cd yourproject\n" +
+				"```\n\n" +
+				"2. Install dependencies if not already installed:\n\n" +
+				"```sh\n" +
+				"go mod tidy\n" +
+				"```\n\n" +
+				"3. Set up environment variables (if any):\n\n" +
+				"```sh\n" +
+				"cp .gost.env .env\n" +
+				"# Edit the .env file with your configuration\n" +
+				"```\n\n" +
+				"## Usage\n\n" +
+				"### Running the Project\n\n" +
+				"To start the project, use:\n\n" +
+				"```sh\n" +
+				"gost r\n" +
+				"```\n\n" +
+				"### Project Structure\n\n" +
+				"By default gost creates the following structure for you:\n\n" +
+				"```\n" +
+				".\n" +
+				`├── app
 │   ├── api
 │   │   └── v1
 │   ├── assets
@@ -183,7 +258,7 @@ require {{.VersionedBackendImport}}
 │   │   ├── core
 │   │   │   └── gost.go
 │   │   └── models
-│   └── ui
+│   └── web
 │       ├── backend
 │       │   ├── assets
 │       │   │   ├── css
@@ -273,30 +348,30 @@ require {{.VersionedBackendImport}}
 ├── package-lock.json
 └── package.json
 ` +
-                "```\n\n" +
-                "### Running Tests\n\n" +
-                "To run tests, use:\n\n" +
-                "```sh\n" +
-                "gost t\n" +
-                "```\n\n" +
-                "## Configuration\n\n" +
-                "List any configuration settings for your project:\n\n" +
-                "- `DATABASE_URL`: The URL of your database.\n" +
-                "- `PORT`: The port on which the server will run.\n\n" +
-                "## Contributing\n\n" +
-                "We welcome contributions! Please follow these steps to contribute:\n\n" +
-                "1. Fork the repository.\n" +
-                "2. Create a new branch with your feature or bug fix.\n" +
-                "3. Commit your changes.\n" +
-                "4. Push the branch to your fork.\n" +
-                "5. Create a pull request.\n\n" +
-                "## License\n\n" +
-                "This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.\n\n" +
-                "## Acknowledgements\n\n" +
-                "Thanks to the contributors and the open-source community for their valuable input and support.\n"
-        },
-        "Makefile": func() string {
-            return `# Makefile for {{.AppName}}
+				"```\n\n" +
+				"### Running Tests\n\n" +
+				"To run tests, use:\n\n" +
+				"```sh\n" +
+				"gost t\n" +
+				"```\n\n" +
+				"## Configuration\n\n" +
+				"List any configuration settings for your project:\n\n" +
+				"- `DATABASE_URL`: The URL of your database.\n" +
+				"- `PORT`: The port on which the server will run.\n\n" +
+				"## Contributing\n\n" +
+				"We welcome contributions! Please follow these steps to contribute:\n\n" +
+				"1. Fork the repository.\n" +
+				"2. Create a new branch with your feature or bug fix.\n" +
+				"3. Commit your changes.\n" +
+				"4. Push the branch to your fork.\n" +
+				"5. Create a pull request.\n\n" +
+				"## License\n\n" +
+				"This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.\n\n" +
+				"## Acknowledgements\n\n" +
+				"Thanks to the contributors and the open-source community for their valuable input and support.\n"
+		},
+		"Makefile": func() string {
+			return `# Makefile for {{.AppName}}
 
 # Go parameters
 GOCMD = go
@@ -310,7 +385,7 @@ BINARY_UNIX = $(BINARY_NAME)_unix
 BINARY_WIN = $(BINARY_NAME)_windows
 
 # Frontend parameters
-FRONTEND_DIR = ui/front
+FRONTEND_DIR = web/front
 NPMCMD = npm
 NPMINSTALL = $(NPMCMD) install
 NPMRUNBUILD = $(NPMCMD) run build
@@ -348,17 +423,21 @@ clean:
 
 .PHONY: all test build run release frontend clean
 `
-        },
-        ".gitignore": func() string {
-            return `.git/*
+		},
+		"Dockerfile": func() string {
+			return `
+`
+		},
+		".gitignore": func() string {
+			return `.git/*
 .gitignore
 .idea/*
 .vscode/*
 .gost.env.dev
 log/*`
-        },
-        ".air.toml": func() string {
-            return `[build]
+		},
+		".air.toml": func() string {
+			return `[build]
 cmd = "go build -o ./tmp/main ."
 bin = "tmp/main"
 watch = ["."]
@@ -366,13 +445,13 @@ exclude_dir = ["tmp", "vendor"]
 exclude_file = ["go.sum", "go.mod", ".gitignore", ".DS_Store", ".idea", ".git", ".vscode", "node_modules", "storage", "log"]
 delay = 200
 `
-        }}
+		}}
 
-    // build a .gost config file based on the format used by the user
+	// build a .gost config file based on the format used by the user
 
-    if strings.HasSuffix(g.Data.ConfigFile, ".env") {
-        g.Files[".gost.env"] = func() string {
-            return `
+	if strings.HasSuffix(g.Data.ConfigFile, ".env") {
+		g.Files[".gost.env"] = func() string {
+			return `
 # Application environment
 # PROD or DEV
 GOST_ENV=DEV
@@ -404,10 +483,10 @@ GOST_AUTH_SESSION_EXPIRY_IN_HOURS=72
 GOST_AUTH_SKIP_VERIFY=true
 GOST_BACKEND={{ .BackendPkg }}
 `
-        }
-    } else if strings.HasSuffix(g.Data.ConfigFile, ".json") {
-        g.Files[".gost.json"] = func() string {
-            return `{
+		}
+	} else if strings.HasSuffix(g.Data.ConfigFile, ".json") {
+		g.Files[".gost.json"] = func() string {
+			return `{
   ".gost.env": {
     "GOST_ENV": "DEV",
     "PORT": ":{{.Port}}",
@@ -425,10 +504,10 @@ GOST_BACKEND={{ .BackendPkg }}
   }
 }
 `
-        }
-    } else {
-        g.Files[".gost.toml"] = func() string {
-            return `
+		}
+	} else {
+		g.Files[".gost.toml"] = func() string {
+			return `
 [gost.env]
 GOST_ENV = "DEV"
 PORT = ":{{.Port}}"
@@ -444,54 +523,54 @@ GOST_AUTH_SESSION_EXPIRY_IN_HOURS = 72
 GOST_AUTH_SKIP_VERIFY = true
 GOST_BACKEND = "{{.BackendPkg}}"
 `
-        }
-    }
-    return nil
+		}
+	}
+	return nil
 }
 
 func (g *GenFilesPlugin) Execute() error {
-    return g.Generate(g.Data)
+	return g.Generate(g.Data)
 }
 
 func (g *GenFilesPlugin) Shutdown() error {
-    // Any cleanup logic for the plugin
-    return nil
+	// Any cleanup logic for the plugin
+	return nil
 }
 
 func (g *GenFilesPlugin) Name() string {
-    return "GenFilesPlugin"
+	return "GenFilesPlugin"
 }
 
 func (g *GenFilesPlugin) Version() string {
-    return "1.0.0"
+	return "1.0.0"
 }
 
 func (g *GenFilesPlugin) Dependencies() []string {
-    return []string{}
+	return []string{}
 }
 
 func (g *GenFilesPlugin) AuthorName() string {
-    return "Ahmad Hamdi"
+	return "Ahmad Hamdi"
 }
 
 func (g *GenFilesPlugin) AuthorEmail() string {
-    return "contact@hamdiz.me"
+	return "contact@hamdiz.me"
 }
 
 func (g *GenFilesPlugin) Website() string {
-    return "https://hamdiz.me"
+	return "https://hamdiz.me"
 }
 
 func (g *GenFilesPlugin) GitHub() string {
-    return "https://github.com/theHamdiz/gost/gen/files"
+	return "https://github.com/theHamdiz/gost/gen/files"
 }
 
 func (g *GenFilesPlugin) Generate(data config.ProjectData) error {
-    return general.GenerateFiles(data, g.Files)
+	return general.GenerateFiles(data, g.Files)
 }
 
 func NewGenFilesPlugin(data config.ProjectData) *GenFilesPlugin {
-    return &GenFilesPlugin{
-        Data: data,
-    }
+	return &GenFilesPlugin{
+		Data: data,
+	}
 }

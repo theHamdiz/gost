@@ -14,7 +14,7 @@ import (
 	"github.com/theHamdiz/gost/codegen/router"
 	"github.com/theHamdiz/gost/codegen/services"
 	"github.com/theHamdiz/gost/codegen/types"
-	"github.com/theHamdiz/gost/codegen/ui"
+	"github.com/theHamdiz/gost/codegen/web"
 	"github.com/theHamdiz/gost/config"
 	"github.com/theHamdiz/gost/plugins"
 	pmCfg "github.com/theHamdiz/gost/plugins/config"
@@ -33,7 +33,7 @@ func ExecuteGeneration(data config.ProjectData) error {
 		router.NewGenRouterPlugin(data),
 		services.NewGenServicesPlugin(data),
 		types.NewGenTypesPlugin(data),
-		ui.NewGenUiPlugin(data),
+		web.NewGenUiPlugin(data),
 	}
 
 	pmConfig := &pmCfg.PluginManagerConfig{

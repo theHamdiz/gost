@@ -10,7 +10,13 @@ type GenApiPlugin struct {
 }
 
 func (g *GenApiPlugin) Init() error {
-	// Any initialization logic for the plugin
+	g.Files = map[string]func() string{
+		"app/api/http/v1/api.go":              func() string { return `package httpApi` },
+		"app/api/http/v1/helpers.go":          func() string { return `package httpApi` },
+		"app/api/grpc/v1/proto/service.proto": func() string { return `` },
+		"app/api/grpc/v1/server/server.go":    func() string { return `package grpcServer` },
+		"app/api/grpc/v1/client/client.go":    func() string { return `package grpcClient` },
+	}
 	return nil
 }
 
@@ -58,9 +64,6 @@ func (g *GenApiPlugin) Generate(data config.ProjectData) error {
 
 func NewGenApiPlugin(data config.ProjectData) *GenApiPlugin {
 	return &GenApiPlugin{
-		Files: map[string]func() string{
-			"app/api/v1/api.go": func() string { return `package api` },
-		},
 		Data: data,
 	}
 }

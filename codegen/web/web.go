@@ -1,4 +1,4 @@
-package ui
+package web
 
 import (
 	"github.com/theHamdiz/gost/codegen/general"
@@ -13,8 +13,8 @@ type GenUiPlugin struct {
 func (g *GenUiPlugin) Init() error {
 	// Initialize Files
 	g.Files = map[string]func() string{
-		"app/ui/embed.go": func() string {
-			return `package ui
+		"app/web/frontend/embed.go": func() string {
+			return `package web
 
 import (
 	"embed"
@@ -59,7 +59,7 @@ func RegisterRoutes(mux interface{}) {
 }
 			`
 		},
-		"app/ui/frontend/package.json": func() string {
+		"app/web/frontend/package.json": func() string {
 			return `{
   "name": "front",
   "private": true,
@@ -79,36 +79,36 @@ func RegisterRoutes(mux interface{}) {
   }
 }`
 		},
-		"app/ui/frontend/.env":           func() string { return `` },
-		"app/ui/frontend/.env.dev":       func() string { return `` },
-		"app/ui/frontend/robots.txt":     func() string { return `` },
-		"app/ui/frontend/vite.config.js": func() string { return `` },
-		"app/ui/public/index.html":       func() string { return `` },
-		"app/ui/frontend/README.md":      func() string { return `` },
-		"app/ui/README.md":               func() string { return `` },
-		"app/ui/frontend/index.html":     func() string { return `` },
-		"app/ui/frontend/pages/signin.templ": func() string {
+		"app/web/frontend/.env":           func() string { return `` },
+		"app/web/frontend/.env.dev":       func() string { return `` },
+		"app/web/frontend/robots.txt":     func() string { return `` },
+		"app/web/frontend/vite.config.js": func() string { return `` },
+		"app/web/public/index.html":       func() string { return `` },
+		"app/web/frontend/README.md":      func() string { return `` },
+		"app/web/README.md":               func() string { return `` },
+		"app/web/frontend/index.html":     func() string { return `` },
+		"app/web/frontend/pages/signin.templ": func() string {
 			return `package signin
 		templ Signin(){
 		}
 		`
 		},
-		"app/ui/frontend/pages/signup.templ": func() string {
+		"app/web/frontend/pages/signup.templ": func() string {
 			return `package signup
 		templ Signup(){
 		}
 		`
 		},
-		"app/ui/frontend/assets/css/style.css": func() string {
+		"app/web/frontend/assets/css/style.css": func() string {
 			return ``
 		},
-		"app/ui/frontend/assets/js/index.js": func() string {
+		"app/web/frontend/assets/js/index.js": func() string {
 			return ``
 		},
-		"app/ui/frontend/components/index.js": func() string { return `` },
-		"app/ui/frontend/pages/index.js":      func() string { return `` },
-		"app/ui/frontend/store/index.js":      func() string { return `` },
-		"app/ui/backend/package.json": func() string {
+		"app/web/frontend/components/index.js": func() string { return `` },
+		"app/web/frontend/pages/index.js":      func() string { return `` },
+		"app/web/frontend/store/index.js":      func() string { return `` },
+		"app/web/backend/package.json": func() string {
 			return `{
   "name": "front",
   "private": true,
@@ -128,25 +128,24 @@ func RegisterRoutes(mux interface{}) {
   }
 }`
 		},
-		"app/ui/backend/vite.config.js": func() string { return `` },
-		"app/ui/backend/.env":           func() string { return `` },
-		"app/ui/backend/.env.dev":       func() string { return `` },
-		"app/ui/backend/robots.txt":     func() string { return `` },
-		"app/ui/backend/README.md":      func() string { return `` },
-		"app/ui/backend/assets/css/style.css": func() string {
+		"app/web/backend/vite.config.js": func() string { return `` },
+		"app/web/backend/.env":           func() string { return `` },
+		"app/web/backend/.env.dev":       func() string { return `` },
+		"app/web/backend/robots.txt":     func() string { return `` },
+		"app/web/backend/README.md":      func() string { return `` },
+		"app/web/backend/assets/css/style.css": func() string {
 			return ``
 		},
-		"app/ui/backend/assets/js/index.js": func() string {
+		"app/web/backend/assets/js/index.js": func() string {
 			return ``
 		},
-		"app/ui/backend/components/index.js": func() string { return `` },
-		"app/ui/backend/pages/index.js":      func() string { return `` },
-		"app/ui/backend/store/index.js":      func() string { return `` },
-		"app/ui/backend/index.html":          func() string { return `` },
-		"app/ui/backend/signin.html":         func() string { return `` },
-		"app/ui/backend/signup.html":         func() string { return `` },
-
-		"app/ui/components/head.templ": func() string {
+		"app/web/backend/components/index.js": func() string { return `` },
+		"app/web/backend/pages/index.js":      func() string { return `` },
+		"app/web/backend/store/index.js":      func() string { return `` },
+		"app/web/backend/index.html":          func() string { return `` },
+		"app/web/backend/signin.html":         func() string { return `` },
+		"app/web/backend/signup.html":         func() string { return `` },
+		"app/web/components/head.templ": func() string {
 			return `package head
 
 templ Head(title, css, js){
@@ -167,7 +166,7 @@ templ Head(title, css, js){
 }
 `
 		},
-		"app/ui/layouts/base.templ": func() string {
+		"app/web/layouts/base.templ": func() string {
 			return `package layouts
 
 import "{{.AppName}}/app/views"
@@ -184,7 +183,7 @@ templ Base(title, css, js string){
 }
 `
 		},
-		"app/ui/layouts/app.templ": func() string {
+		"app/web/layouts/app.templ": func() string {
 			return `package layouts
 
 var (
@@ -201,7 +200,7 @@ templ App() {
 }
 `
 		},
-		"app/ui/components/header/header.templ": func() string {
+		"app/web/components/header/header.templ": func() string {
 			return `package components
 
 templ Header(){
@@ -211,7 +210,7 @@ templ Header(){
 }
 `
 		},
-		"app/ui/components/footer/footer.templ": func() string {
+		"app/web/components/footer/footer.templ": func() string {
 			return `package components
 
 templ Footer(){
@@ -221,7 +220,7 @@ templ Footer(){
 }
 `
 		},
-		"app/ui/pages/home.templ": func() string {
+		"app/web/pages/home.templ": func() string {
 			return `package pages
 
 templ Home(){
@@ -230,7 +229,7 @@ templ Home(){
 }
 `
 		},
-		"app/ui/pages/about.templ": func() string {
+		"app/web/pages/about.templ": func() string {
 			return `package pages
 
 templ About(){
@@ -239,7 +238,7 @@ templ About(){
 }
 `
 		},
-		"app/ui/components/navigation/sidebar.templ": func() string {
+		"app/web/components/navigation/sidebar.templ": func() string {
 			return `package navigation
 
 templ Sidebar(){
@@ -253,7 +252,7 @@ templ Sidebar(){
 }
 `
 		},
-		"app/ui/views.go": func() string {
+		"app/web/views.go": func() string {
 			return `package views
 
 import (
@@ -283,7 +282,7 @@ func Asset(fileName string) ([]byte, error) {
 }
 `
 		},
-		"app/ui/errors/404.templ": func() string {
+		"app/web/errors/404.templ": func() string {
 			return `package errors
 
 templ _404(){
@@ -291,7 +290,7 @@ templ _404(){
 }
 `
 		},
-		"app/ui/errors/500.templ": func() string {
+		"app/web/errors/500.templ": func() string {
 			return `package errors
 
 templ _500(){

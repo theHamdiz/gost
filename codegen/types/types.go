@@ -27,6 +27,18 @@ import (
     "github.com/gorilla/sessions"
 )
 
+type Configurable interface {
+	{{- if eq .PreferredConfigFormat 'env'}}
+	SaveAsEnv(filePath string) error
+	{{- else if eq .PreferredConfigFormat 'json'}}
+	SaveAsJSON(filePath string) error
+	{{- else if eq .PreferredConfigFormat 'toml'}}
+	SaveAsTOML(filePath string) error
+	{{- else }}
+	SaveAsYAML(filePath string) error
+	{{- end }}
+}
+
 var store *sessions.CookieStore
 
 type HandlerFunc func(*Gost) error
@@ -148,6 +160,9 @@ type Router interface {
     Use(middleware ...interface{})
     Get(path string, handler HandlerFunc)
     Post(path string, handler HandlerFunc)
+	Put(path string, handler HandlerFunc)
+	Delete(path string, handler HandlerFunc)
+	Patch(path string, handler HandlerFunc)
     NotFound(handler HandlerFunc)
 }
 
@@ -180,6 +195,33 @@ func (c *chiRouter) Post(path string, handler HandlerFunc) {
     })
 }
 
+func (g *ginRouter) Put(path string, handler HandlerFunc) {
+	g.router.Put(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
+func (g *ginRouter) Patch(path string, handler HandlerFunc) {
+	g.router.Patch(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
+func (g *ginRouter) Delete(path string, handler HandlerFunc) {
+	g.router.Delete(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
 func (c *chiRouter) NotFound(handler HandlerFunc) {
     c.router.NotFound(func(w http.ResponseWriter, r *http.Request) {
         g := &Gost{Response: w, Request: r, Router: c}
@@ -188,6 +230,12 @@ func (c *chiRouter) NotFound(handler HandlerFunc) {
         }
     })
 }
+
+
+func NewRouter() Router {
+	return &chiRouter{router: chi.NewRouter()}
+}
+
 {{end}}
 
 {{if eq .BackendPkg "echo"}}
@@ -221,6 +269,33 @@ func (e *echoRouter) Post(path string, handler HandlerFunc) {
     })
 }
 
+func (g *ginRouter) Put(path string, handler HandlerFunc) {
+	g.router.PUT(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
+func (g *ginRouter) Patch(path string, handler HandlerFunc) {
+	g.router.PATCH(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
+func (g *ginRouter) Delete(path string, handler HandlerFunc) {
+	g.router.DELETE(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
 func (e *echoRouter) NotFound(handler HandlerFunc) {
     e.router.HTTPErrorHandler = func(err error, c echo.Context) {
         if c.Response().Committed {
@@ -231,6 +306,10 @@ func (e *echoRouter) NotFound(handler HandlerFunc) {
             errorHandler(g, err)
         }
     }
+}
+
+func NewRouter() Router {
+	return return &echoRouter{router: echo.New()}
 }
 {{end}}
 
@@ -263,6 +342,33 @@ func (g *ginRouter) Post(path string, handler HandlerFunc) {
     })
 }
 
+func (g *ginRouter) Put(path string, handler HandlerFunc) {
+	g.router.PUT(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
+func (g *ginRouter) Patch(path string, handler HandlerFunc) {
+	g.router.PATCH(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
+func (g *ginRouter) Delete(path string, handler HandlerFunc) {
+	g.router.DELETE(path, func(c *gin.Context) {
+		gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
+		if err := handler(gost); err != nil {
+			errorHandler(gost, err)
+		}
+	})
+}
+
 func (g *ginRouter) NotFound(handler HandlerFunc) {
     g.router.NoRoute(func(c *gin.Context) {
         gost := &Gost{Response: c.Writer, Request: c.Request, Router: g}
@@ -271,21 +377,12 @@ func (g *ginRouter) NotFound(handler HandlerFunc) {
         }
     })
 }
-{{end}}
 
-func NewRouter(backend string) Router {
-    switch backend {
-    case "chi":
-        return &chiRouter{router: chi.NewRouter()}
-    case "echo":
-        return &echoRouter{router: echo.New()}
-    case "gin":
-        return &ginRouter{router: gin.Default()}
-    default:
-        log.Fatalf("Unsupported backend: %s", backend)
-        return nil
-    }
+func NewRouter() Router {
+	return &ginRouter{router: gin.Default()}
 }
+
+{{end}}
 `
 		},
 	}
