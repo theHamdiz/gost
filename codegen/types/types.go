@@ -28,11 +28,11 @@ import (
 )
 
 type Configurable interface {
-	{{- if eq .PreferredConfigFormat 'env'}}
+	{{- if eq .PreferredConfigFormat "env"}}
 	SaveAsEnv(filePath string) error
-	{{- else if eq .PreferredConfigFormat 'json'}}
+	{{- else if eq .PreferredConfigFormat "json"}}
 	SaveAsJSON(filePath string) error
-	{{- else if eq .PreferredConfigFormat 'toml'}}
+	{{- else if eq .PreferredConfigFormat "toml"}}
 	SaveAsTOML(filePath string) error
 	{{- else }}
 	SaveAsYAML(filePath string) error
