@@ -275,6 +275,23 @@ func LoadFromTOML(filePath string) (*GostConfig, error) {
 	return config, err
 }
 
+func LoadFromYAML(filePath string) (*GostConfig, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(">>Gost>> Error closing file:", err)
+		}
+	}(file)
+
+	config := &GostConfig{}
+	decoder := yaml.NewDecoder(file)
+	return config, decoder.Decode(config)
+}
+
 func GetConfigPath() string {
 	usr, err := user.Current()
 	if err != nil {

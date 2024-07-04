@@ -23,7 +23,8 @@ func (g *Generator) Generate(projectDir string) error {
 func NewDirsGenerator() *Generator {
 	return &Generator{
 		Dirs: []string{
-			"cmd/app",
+			"cmd/server",
+			"cmd/worker",
 			"log/",
 			"storage/",
 			"cmd/scripts",
@@ -47,7 +48,10 @@ func NewDirsGenerator() *Generator {
 			"app/web/shared",
 			"app/db/migrations",
 			"app/events",
-			"app/api/v1",
+			"app/api/http/v1",
+			"app/api/grpc/v1/proto",
+			"app/api/grpc/v1/server",
+			"app/api/grpc/v1/client",
 			"plugins/auth",
 			"public/assets",
 		},

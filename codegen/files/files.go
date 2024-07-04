@@ -450,7 +450,7 @@ delay = 200
 	// build a .gost config file based on the format used by the user
 
 	if strings.HasSuffix(g.Data.ConfigFile, ".env") {
-		g.Files[".gost.env"] = func() string {
+		g.Files[".env"] = func() string {
 			return `
 # Application environment
 # PROD or DEV
@@ -485,7 +485,7 @@ GOST_BACKEND={{ .BackendPkg }}
 `
 		}
 	} else if strings.HasSuffix(g.Data.ConfigFile, ".json") {
-		g.Files[".gost.json"] = func() string {
+		g.Files["config.json"] = func() string {
 			return `{
   ".gost.env": {
     "GOST_ENV": "DEV",
@@ -505,8 +505,8 @@ GOST_BACKEND={{ .BackendPkg }}
 }
 `
 		}
-	} else {
-		g.Files[".gost.toml"] = func() string {
+	} else if strings.HasSuffix(g.Data.ConfigFile, ".toml") {
+		g.Files["config.toml"] = func() string {
 			return `
 [gost.env]
 GOST_ENV = "DEV"
@@ -522,6 +522,24 @@ GOST_AUTH_REDIRECT_AFTER_LOGIN = "/profile"
 GOST_AUTH_SESSION_EXPIRY_IN_HOURS = 72
 GOST_AUTH_SKIP_VERIFY = true
 GOST_BACKEND = "{{.BackendPkg}}"
+`
+		}
+	} else {
+		g.Files["config.yaml"] = func() string {
+			return `
+GOST_ENV: DEV
+PORT: ":{{.Port}}"
+DB_DRIVER: "{{.DbDriver}}"
+DB_USER: ""
+DB_HOST: ""
+DB_PASSWORD: ""
+DB_NAME: "db.db"
+MIGRATIONS_DIR: "app/db/migrations"
+GOST_SECRET: "{{.Fingerprint}}"
+GOST_AUTH_REDIRECT_AFTER_LOGIN: "/profile"
+GOST_AUTH_SESSION_EXPIRY_IN_HOURS: 72
+GOST_AUTH_SKIP_VERIFY: true
+GOST_BACKEND: "{{.BackendPkg}}"
 `
 		}
 	}

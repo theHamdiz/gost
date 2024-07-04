@@ -99,7 +99,6 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 
 import (
     "html/template"
-    "net/http"
     "path/filepath"
 )
 
@@ -135,7 +134,10 @@ func AboutHandler(w http.ResponseWriter, r *http.Request) {
 `
 		},
 
-		"app/handlers/api/api.go": func() string { return `` },
+		"app/handlers/api/api.go": func() string {
+			return `package api
+		`
+		},
 	}
 	return nil
 
