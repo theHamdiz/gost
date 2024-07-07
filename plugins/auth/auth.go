@@ -8,13 +8,20 @@ import (
 	"github.com/theHamdiz/gost/services"
 )
 
-type AuthPlugin struct {
-	authService *AuthService
+type PluginConfig struct {
+	PluginDir string
 }
 
-func (ap *AuthPlugin) Init(config map[string]interface{}, sc *services.ServiceContainer) error {
+type AuthPlugin struct {
+	authService *AuthService
+	config      *PluginConfig
+}
+
+func (ap *AuthPlugin) Init() error {
+	var sc = services.NewServiceContainer()
 	ap.authService = sc.GetService("auth").(*AuthService)
-	fmt.Println("Auth Plugin Initialized with cfg:", config)
+	ap.config.PluginDir = "plugins/auth"
+	fmt.Println("Auth Plugin Initialized with cfg:", ap.config)
 	return nil
 }
 
@@ -28,20 +35,50 @@ func (ap *AuthPlugin) Shutdown() error {
 	return nil
 }
 
+func (g *AuthPlugin) Name() string {
+	return "GenTypesPlugin"
+}
+
+func (g *AuthPlugin) Version() string {
+	return "1.0.0"
+}
+
+func (g *AuthPlugin) Dependencies() []string {
+	return []string{}
+}
+
+func (g *AuthPlugin) AuthorName() string {
+	return "Ahmad Hamdi"
+}
+
+func (g *AuthPlugin) AuthorEmail() string {
+	return "contact@hamdiz.me"
+}
+
+func (g *AuthPlugin) Website() string {
+	return "https://hamdiz.me"
+}
+
+func (g *AuthPlugin) GitHub() string {
+	return "https://github.com/theHamdiz/gost/gen/types"
+}
+
 type AuthService struct{}
 
 func NewAuthService() *AuthService {
 	return &AuthService{}
 }
 
-func RegisterAuthPlugin(cfg config.PluginConfig) {
+func RegisterAuthPlugin() {
 	sc := services.NewServiceContainer()
 	authService := NewAuthService()
 	sc.RegisterService("auth", authService)
-
-	pm := plugins.NewPluginManager(cfg, sc)
+	pmConfig := &config.PluginManagerConfig{
+		PluginsDir: "plugins",
+	}
+	pm := plugins.NewPluginManager(pmConfig)
 	authPlugin := &AuthPlugin{}
-	pm.RegisterPlugin("auth", authPlugin)
+	pm.RegisterPlugin(authPlugin)
 
 	if err := pm.InitPlugins(); err != nil {
 		fmt.Println("Error initializing plugins:", err)

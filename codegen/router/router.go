@@ -19,7 +19,7 @@ func (g *GenRouterPlugin) Init() error {
 import (
     "{{.AppName}}/app/handlers"
     "{{.AppName}}/app/middleware"
-    "app/types/core"
+    "{{.AppName}}/app/types/core"
     "log"
     {{if eq .BackendPkg "chi"}}
     "github.com/go-chi/chi/v5/middleware"

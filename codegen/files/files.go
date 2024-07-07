@@ -54,12 +54,7 @@ func waitForShutdown() {
 }
 
 func main() {
-    c := cfg.LoadConfig()
-    logger.InitLogger()
-    db.InitDB(c)
-    defer db.CloseDB()
-
-    server := router.InitRoutes()
+    
 
     log.Println("Server starting on port", cfg.Port)
     go func() {
@@ -169,7 +164,9 @@ func main() {
 
 go 1.22.4
 
+{{ if ne .VersionedBackendImport ""}}
 require {{.VersionedBackendImport}}
+{{ end }}
 `
 		},
 		"go.sum": func() string {

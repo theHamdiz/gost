@@ -3,7 +3,6 @@ package cfg
 import (
 	"bytes"
 	"html/template"
-	"path/filepath"
 
 	"github.com/theHamdiz/gost/codegen/general"
 	"github.com/theHamdiz/gost/config"
@@ -22,25 +21,25 @@ import (
 )
 
 var(
-	{{- if eq .ConfigFile ".env"}}
-	ConfigFile string = ".env"
-	{{- else if eq .ConfigFile ".json"}}
-	ConfigFile string = "config.json"
-	{{- else if eq .ConfigFile ".toml"}}
-	ConfigFile string = "config.toml"
-	{{- else if eq .ConfigFile ".yaml"}}
-	ConfigFile string = "config.yaml"
+	{{- if eq .PreferredConfigFormat ".env"}}
+	ConfigFile string = ".gost.env"
+	{{- else if eq .PreferredConfigFormat ".json"}}
+	ConfigFile string = ".gost.json"
+	{{- else if eq .PreferredConfigFormat ".toml"}}
+	ConfigFile string = ".gost.toml"
+	{{- else if eq .PreferredConfigFormat ".yaml"}}
+	ConfigFile string = ".gost.yaml"
 	{{- end }}
 )
 
 type Configurable interface {
-	{{- if eq .ConfigFile ".env"}}
+	{{- if eq .PreferredConfigFormat ".env"}}
 	SaveAsEnv(filePath string) error
-	{{- else if eq .ConfigFile ".json"}}
+	{{- else if eq .PreferredConfigFormat ".json"}}
 	SaveAsJSON(filePath string) error
-	{{- else if eq .ConfigFile ".toml"}}
+	{{- else if eq .PreferredConfigFormat ".toml"}}
 	SaveAsTOML(filePath string) error
-	{{- else if eq .ConfigFile ".yaml"}}
+	{{- else if eq .PreferredConfigFormat ".yaml"}}
 	SaveAsYAML(filePath string) error
 	{{- end }}
 }
@@ -104,7 +103,7 @@ func LoadConfig() (*Config, error) {
         BackendPkg:                   getEnv("GOST_BACKEND", "gin"),
     }, nil
 
-	{{- else if eq .ConfigFile ".json"}}
+	{{- else if eq .PreferredConfigFormat ".json"}}
 		file, err := os.Open(ConfigFile)
 		if err != nil {
 			return nil, err
@@ -116,7 +115,7 @@ func LoadConfig() (*Config, error) {
 		err = decoder.Decode(config)
 		return config, err
 
-	{{- else if eq .ConfigFile ".toml"}}
+	{{- else if eq .PreferredConfigFormat ".toml"}}
 		file, err := os.Open(ConfigFile)
 		if err != nil {
 			return nil, err
@@ -128,7 +127,7 @@ func LoadConfig() (*Config, error) {
 		err = decoder.Decode(config)
 		return config, err
 
-	{{- else if eq .ConfigFile ".yaml"}}
+	{{- else if eq .PreferredConfigFormat ".yaml"}}
 		file, err := os.Open(ConfigFile)
 		if err != nil {
 			return nil, err
@@ -151,23 +150,8 @@ func (g *GenConfPlugin) Init() error {
 				panic(err)
 			}
 
-			data := map[string]string{
-				"ConfigFile": g.Data.ConfigFile,
-			}
-
-			switch filepath.Ext(g.Data.ConfigFile) {
-			case ".env":
-				data["ConfigFile"] = ".env"
-			case ".json":
-				data["ConfigFile"] = "config.json"
-			case ".toml":
-				data["ConfigFile"] = "config.toml"
-			case ".yaml":
-				data["ConfigFile"] = "config.yaml"
-			}
-
 			var buf bytes.Buffer
-			if err := tmpl.Execute(&buf, data); err != nil {
+			if err := tmpl.Execute(&buf, g.Data); err != nil {
 				panic(err)
 			}
 

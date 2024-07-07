@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -77,6 +78,10 @@ func BuildConfig(config *cfg.GostConfig) {
 		config.PreferredDbOrm = askChoice(scanner, "[-] Choose your preferred ORM:", []string{"Built In", "Ent", "Gorm", "Bun", "Sqlc", "Bob"})
 		somethingChanged = true
 	}
+	if config.PreferredFrontEndFramework == "" {
+		config.PreferredUiFramework = askChoice(scanner, "[-] Choose your preferred frontend framework:", []string{"Htmx", "React", "Svelte", "Vue"})
+		somethingChanged = true
+	}
 	if config.PreferredUiFramework == "" {
 		config.PreferredUiFramework = askChoice(scanner, "[-] Choose your preferred UI framework:", []string{"Tailwindcss", "Bootstrap"})
 		somethingChanged = true
@@ -89,7 +94,7 @@ func BuildConfig(config *cfg.GostConfig) {
 		somethingChanged = true
 	}
 	if config.PreferredPort == 0 {
-		config.PreferredPort = askIntChoice(scanner, "[-] Preferred Port:", []int{9630, 42069, 6666})
+		config.PreferredPort = askIntChoice(scanner, "[-] Preferred Port:", []int{9630, 42069, 6666, 8080})
 		somethingChanged = true
 	}
 	if config.GlobalSettings == "" {
@@ -97,7 +102,7 @@ func BuildConfig(config *cfg.GostConfig) {
 		somethingChanged = true
 	}
 	if config.PreferredConfigFormat == "" {
-		config.PreferredConfigFormat = askChoice(scanner, "[-] Preferred cfg file format:", []string{"env", "json", "toml"})
+		config.PreferredConfigFormat = askChoice(scanner, "[-] Preferred cfg file format:", []string{"env", "json", "toml", "yaml"})
 		somethingChanged = true
 	}
 
@@ -153,6 +158,8 @@ func saveConfig(config cfg.GostConfig) {
 		filePath = filepath.Join(usr.HomeDir, ".gost.json")
 	case "toml":
 		filePath = filepath.Join(usr.HomeDir, ".gost.toml")
+	case "yaml":
+		filePath = filepath.Join(usr.HomeDir, ".gost.yaml")
 	default:
 		fmt.Println(clr.Colorize("Invalid cfg format", "red"))
 		return
@@ -166,6 +173,8 @@ func saveConfig(config cfg.GostConfig) {
 		saveErr = config.SaveAsJSON(filePath)
 	case "toml":
 		saveErr = config.SaveAsTOML(filePath)
+	case "yaml":
+		saveErr = config.SaveAsYAML(filePath)
 	}
 
 	if saveErr != nil {
@@ -216,12 +225,12 @@ func installFrameworks(projectDir string) error {
 	case "tailwind", "tailwindcss":
 		err := installTailwind(projectDir)
 		if err != nil {
-			fmt.Printf(clr.Colorize("Error installing tailwind: %s\n", "red"))
+			fmt.Printf(clr.Colorize("Error installing tailwind: %s\n", "red"), err)
 		}
 	case "bootstrap", "bootstrapjs", "bootstrapcss":
 		err := installBootstrap(projectDir)
 		if err != nil {
-			fmt.Printf(clr.Colorize("Error installing bootstrap: %s\n", "red"))
+			fmt.Printf(clr.Colorize("Error installing bootstrap: %s\n", "red"), err)
 		}
 	}
 
@@ -239,17 +248,17 @@ func installFrameworks(projectDir string) error {
 
 // installTailwind -> Try to install tailwindcss from node first.
 func installTailwind(projectDir string) error {
-	return runner.RunCommandWithDir(projectDir, "npm", "install", "tailwind@latest", "--force")
+	return runner.RunCommandWithDir(projectDir, "npm", "i", "tailwind@latest", "--force")
 }
 
 // installBootstrap -> Try to install bootstrap from node first.
 func installBootstrap(projectDir string) error {
-	return runner.RunCommandWithDir(projectDir, "npm", "install", "bootstrap@latest", "--force")
+	return runner.RunCommandWithDir(projectDir, "npm", "i", "bootstrap@latest", "--force")
 }
 
 // installHtmx -> Try to install htmx from node first.
 func installHtmx(projectDir string) error {
-	return runner.RunCommandWithDir(projectDir, "npm", "install", "htmx.org@latest", "--save", "--force")
+	return runner.RunCommandWithDir(projectDir, "npm", "i", "htmx.org@2.0.0", "--save", "--force")
 }
 
 // installAir -> install the air watcher framework.
@@ -753,17 +762,18 @@ func CapitalizeFirstLetter(s string) string {
 
 func NewProjectDataFromConfig(config *cfg.GostConfig) *genCfg.ProjectData {
 	return &genCfg.ProjectData{
-		AppName:             CapitalizeFirstLetter(config.AppName),
-		BackendPkg:          config.PreferredBackendFramework,
-		ComponentsFramework: config.PreferredComponentsFramework,
-		ConfigFile:          config.PreferredConfigFormat,
-		CurrentYear:         time.Now().Year(),
-		DbDriver:            config.PreferredDbDriver,
-		UiFramework:         config.PreferredUiFramework,
-		Port:                config.PreferredPort,
-		DbOrm:               config.PreferredDbOrm,
-		IncludeAuth:         true,
-		MigrationsDir:       "app/db/migrations",
+		AppName:               CapitalizeFirstLetter(config.AppName),
+		BackendPkg:            config.PreferredBackendFramework,
+		ComponentsFramework:   config.PreferredComponentsFramework,
+		PreferredConfigFormat: config.PreferredConfigFormat,
+		ConfigFile:            config.PreferredConfigFormat,
+		CurrentYear:           time.Now().Year(),
+		DbDriver:              config.PreferredDbDriver,
+		UiFramework:           config.PreferredUiFramework,
+		Port:                  config.PreferredPort,
+		DbOrm:                 config.PreferredDbOrm,
+		IncludeAuth:           true,
+		MigrationsDir:         "app/db/migrations",
 	}
 }
 
@@ -773,8 +783,9 @@ func generateProject(config *cfg.GostConfig) {
 	fmt.Println(clr.Colorize("Project Config File:", "teal"), clr.Colorize(ProjectData.ConfigFile, "green"))
 	fmt.Println(clr.Colorize("UI Framework:", "teal"), clr.Colorize(ProjectData.UiFramework, ""))
 	fmt.Println(clr.Colorize("Component Framework:", "teal"), clr.Colorize(ProjectData.ComponentsFramework, ""))
+	fmt.Println(clr.Colorize("Frontend Framework:", "teal"), clr.Colorize(ProjectData.FrontEndFramework, ""))
 	fmt.Println(clr.Colorize("Backend Framework:", "teal"), clr.Colorize(ProjectData.BackendPkg, ""))
-	fmt.Println(clr.Colorize("DB Framework:", "teal"), clr.Colorize(ProjectData.DbDriver, ""))
+	fmt.Println(clr.Colorize("DB Driver:", "teal"), clr.Colorize(ProjectData.DbDriver, ""))
 	fmt.Println(clr.Colorize("DB Orm:", "teal"), clr.Colorize(ProjectData.DbOrm, ""))
 
 	if err := codegen.ExecuteGeneration(*ProjectData); err != nil {
@@ -786,33 +797,33 @@ func generateProject(config *cfg.GostConfig) {
 		ProjectData.BackendImport = "github.com/gin-gonic/gin"
 		ProjectData.BackendInit = "gin.Default()"
 		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, getLatestGoPackageVersion("github.com/gin-gonic/gin"))
-		err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
-		if err != nil {
-			fmt.Printf("Error running go get: %+v\n", err)
-			return
-		}
+		// err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
+		// if err != nil {
+		// 	fmt.Printf("Error running go get: %+v\n", err)
+		// 	return
+		// }
 		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	case "chi":
 		ProjectData.BackendImport = "github.com/go-chi/chi/v5"
 		ProjectData.BackendPkg = "chi"
 		ProjectData.BackendInit = "chi.NewRouter()"
 		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, getLatestGoPackageVersion("github.com/go-chi/chi/v5"))
-		err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
-		if err != nil {
-			fmt.Println("Error running go get:", err)
-			return
-		}
+		// err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
+		// if err != nil {
+		// 	fmt.Println("Error running go get:", err)
+		// 	return
+		// }
 		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	case "echo":
 		ProjectData.BackendImport = "github.com/labstack/echo/v5"
 		ProjectData.BackendPkg = "echo"
 		ProjectData.BackendInit = "echo.New()"
 		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, "v5.0.0-20230722203903-ec5b858dab61")
-		err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
-		if err != nil {
-			fmt.Println("Error running go get:", err)
-			return
-		}
+		// err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
+		// if err != nil {
+		// 	fmt.Println("Error running go get:", err)
+		// 	return
+		// }
 		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	default:
 		log.Fatalf("Unsupported backend framework: %s", config.PreferredBackendFramework)
@@ -850,19 +861,14 @@ func generateProject(config *cfg.GostConfig) {
 		if err == nil {
 			contentStr := tailwind.GetContentConfigForComponentFramework(ProjectData.ComponentsFramework)
 			if contentStr != "" {
-				err = tailwind.AppendToTailwindConfig(filepath.Join(ProjectData.ProjectDir, "tailwind.config.js"), "content", contentStr)
+				_ = tailwind.AppendToTailwindConfig(filepath.Join(ProjectData.ProjectDir, "tailwind.config.js"), "content", contentStr)
 			}
 
 			pluginStr := tailwind.GetContentConfigForComponentFramework(ProjectData.ComponentsFramework)
 			if pluginStr != "" {
-				err = tailwind.AppendToTailwindConfig(filepath.Join(ProjectData.ProjectDir, "tailwind.config.js"), "plugins", pluginStr)
+				_ = tailwind.AppendToTailwindConfig(filepath.Join(ProjectData.ProjectDir, "tailwind.config.js"), "plugins", pluginStr)
 			}
 		}
-	}
-
-	err = runner.RunCommand("npm", "audit", "fix")
-	if err != nil {
-		fmt.Println(clr.Colorize("Error running npm audit fix:", "red"), err)
 	}
 
 	err = git.CheckGitInstalled()
@@ -870,29 +876,97 @@ func generateProject(config *cfg.GostConfig) {
 		fmt.Println(err)
 	}
 
-	if _, err := os.Stat(filepath.Join(ProjectData.ProjectDir, ".git")); os.IsNotExist(err) {
-		err := runner.RunCommand("git", "init", ProjectData.ProjectDir)
-		if err != nil {
-			fmt.Println(clr.Colorize("Error running git init:", "red"), err)
-		}
-	}
-
 	fmt.Println(clr.Colorize("Project created successfully!", "teal"))
-
-	binary, err := config.GetIDEBinaryName()
-	if err != nil {
-		fmt.Println(clr.Colorize("Could not launch your preferred IDE: ", "red"), err)
+	binary, ideErr := config.GetIDEBinaryName()
+	var ideCommands [][]string
+	if ideErr == nil {
+		// launch preferred ide
+		ideCommands = [][]string{
+			{binary, ProjectData.ProjectDir},
+		}
 	}
 
-	go func() {
-		err = runner.RunCommandWithDir(ProjectData.ProjectDir, "go", "mod", "tidy")
-		if err != nil {
-			fmt.Println(clr.Colorize("Error running go mod tidy:", "red"), err)
+	// Group commands by program
+	npmCommands := [][]string{
+		{"npm", "i"},
+		{"npm", "audit", "fix"},
+	}
+
+	// init a git repo & create a main branch instead of master
+	gitCommands := [][]string{
+		{"git", "init", ProjectData.ProjectDir},
+		{"git", "branch", "-m", "main"},
+	}
+
+	// get all dependencies & tidy go mod
+	goCommands := [][]string{
+		{"go", "get", "-u", "./..."},
+		{"go", "mod", "tidy"},
+	}
+
+	var wg sync.WaitGroup
+	results := make(chan error, len(npmCommands)*2+len(gitCommands)+len(goCommands))
+
+	// Function to run a command and send result to the channel
+	runCommand := func(cmd []string) {
+		defer wg.Done()
+		var cmdDirs []string
+		if cmd[0] == "npm" {
+			cmdDirs = append(cmdDirs, filepath.Join(ProjectData.ProjectDir, "web/frontend"))
+			cmdDirs = append(cmdDirs, filepath.Join(ProjectData.ProjectDir, "web/backend"))
+		} else {
+			cmdDirs = append(cmdDirs, ProjectData.ProjectDir)
 		}
+
+		for _, dir := range cmdDirs {
+			if err := runner.RunCommandWithDir(dir, cmd[0], cmd[1:]...); err != nil {
+				results <- err
+			} else {
+				results <- nil
+			}
+		}
+	}
+
+	// Function to run commands sequentially within a group
+	runCommandGroup := func(commands [][]string) {
+		for _, cmd := range commands {
+			wg.Add(1)
+			runCommand(cmd)
+			wg.Wait() // Wait for each command to finish before starting the next
+		}
+	}
+
+	// Run npm commands concurrently
+	go func() {
+		runCommandGroup(npmCommands)
 	}()
 
-	err = runner.RunCommand(binary, ProjectData.ProjectDir)
-	if err != nil {
-		fmt.Println(clr.Colorize("Error running go get:", "red"), err)
+	// Run git commands concurrently
+	go func() {
+		runCommandGroup(gitCommands)
+	}()
+
+	// Run go commands concurrently
+	go func() {
+		runCommandGroup(goCommands)
+	}()
+
+	// only call ide commands if there's no error.
+	if ideErr == nil {
+		go func() {
+			runCommandGroup(ideCommands)
+		}()
+	}
+	// Wait for all commands to finish
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect results
+	for err := range results {
+		if err != nil {
+			fmt.Println(clr.Colorize("Error:", "red"), err)
+		}
 	}
 }

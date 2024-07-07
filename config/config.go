@@ -18,6 +18,7 @@ type ProjectData struct {
 	FrontEndFramework      string
 	IncludeAuth            bool
 	MigrationsDir          string
+	PreferredConfigFormat  string
 	ProjectDir             string
 	Port                   int
 	UiFramework            string

@@ -13,51 +13,51 @@ type GenServicesPlugin struct {
 func (g *GenServicesPlugin) Init() error {
 	// Initialize Files
 	g.Files = map[string]func() string{
-		"app/services/logger.go": func() string {
-			return `package services
+		// 		"app/services/logger.go": func() string {
+		// 			return `package services
 
-import (
-    "log"
-    "os"
-)
+		// import (
+		//     "log"
+		//     "os"
+		// )
 
-var (
-    InfoLogger  *log.Logger
-    ErrorLogger *log.Logger
-)
+		// var (
+		//     InfoLogger  *log.Logger
+		//     ErrorLogger *log.Logger
+		// )
 
-func InitLogger() {
-    InfoLogger = log.New(os.Stdout, "ℹ INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-    ErrorLogger = log.New(os.Stderr, "✗ ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-}
+		// func InitLogger() {
+		//     InfoLogger = log.New(os.Stdout, "ℹ INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+		//     ErrorLogger = log.New(os.Stderr, "✗ ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+		// }
 
-func Info(message string) {
-    InfoLogger.Println(message)
-}
+		// func Info(message string) {
+		//     InfoLogger.Println(message)
+		// }
 
-func Error(message string) {
-    ErrorLogger.Println(message)
-}
-`
-		},
-		"app/services/rateLimiter.go": func() string {
-			return `package services
+		// func Error(message string) {
+		//     ErrorLogger.Println(message)
+		// }
+		// `
+		// 		},
+		// 		"app/services/rateLimiter.go": func() string {
+		// 			return `package services
 
-import (
-    "golang.org/x/time/rate"
-)
+		// import (
+		//     "golang.org/x/time/rate"
+		// )
 
-var limiter *rate.Limiter
+		// var limiter *rate.Limiter
 
-func InitRateLimiter(limit rate.Limit, burst int) {
-    limiter = rate.NewLimiter(limit, burst)
-}
+		// func InitRateLimiter(limit rate.Limit, burst int) {
+		//     limiter = rate.NewLimiter(limit, burst)
+		// }
 
-func Allow() bool {
-    return limiter.Allow()
-}
-`
-		},
+		// func Allow() bool {
+		//     return limiter.Allow()
+		// }
+		// `
+		// 		},
 	}
 
 	return nil

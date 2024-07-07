@@ -17,38 +17,38 @@ type GenDbPlugin struct {
 func (g *GenDbPlugin) Init() error {
 	now := time.Now().UTC().UnixNano()
 	g.Files = map[string]func() string{
-		"app/services/db.go": func() string {
-			return `package db
+		/*"app/services/db.go": func() string {
+					return `package db
 
-import (
-    "database/sql"
-    "log"
-    {{- if eq .DbDriver "sqlite3" }}
-    _ "github.com/mattn/go-sqlite3"
-    {{- end }}
-)
+		import (
+		    "database/sql"
+		    "log"
+		    {{- if eq .DbDriver "sqlite3" }}
+		    _ "github.com/mattn/go-sqlite3"
+		    {{- end }}
+		)
 
-var DB *sql.DB
+		var DB *sql.DB
 
-func InitDB(c cfg.Config) {
-    var err error
-    DB, err = sql.Open(c.DbDriver, c.DbName)
-    if err != nil {
-        log.Fatal("Error opening database:", err)
-    }
+		func InitDB(c cfg.Config) {
+		    var err error
+		    DB, err = sql.Open(c.DbDriver, c.DbName)
+		    if err != nil {
+		        log.Fatal("Error opening database:", err)
+		    }
 
-    if err = DB.Ping(); err != nil {
-        log.Fatal("Error pinging database:", err)
-    }
-}
+		    if err = DB.Ping(); err != nil {
+		        log.Fatal("Error pinging database:", err)
+		    }
+		}
 
-func CloseDB() {
-    if err := DB.Close(); err != nil {
-        log.Println("Error closing database:", err)
-    }
-}
-`
-		},
+		func CloseDB() {
+		    if err := DB.Close(); err != nil {
+		        log.Println("Error closing database:", err)
+		    }
+		}
+		`
+				},*/
 		"app/db/db.go": func() string {
 			return `package db
 

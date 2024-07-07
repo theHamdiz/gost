@@ -1,6 +1,6 @@
 package public
 
-import "embed"
+// import "embed"
 
-//go:embed assets
-var AssetsFS embed.FS
+// //go:embed assets
+// var AssetsFS embed.FS

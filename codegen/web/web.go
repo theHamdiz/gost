@@ -29,7 +29,7 @@ import (
 	{{- end }}
 )
 
-//go:embed front/dist/* back/dist/*
+//go:embed frontend/dist/* backend/dist/* shared/*
 var uiFS embed.FS
 
 // RegisterRoutes -> registers the embedded static files with the chosen router (Echo, Gin, Chi, or http.ServeMux)
@@ -61,7 +61,7 @@ func RegisterRoutes(mux interface{}) {
 		},
 		"app/web/frontend/package.json": func() string {
 			return `{
-  "name": "front",
+  "name": "{{.AppName}}",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -79,30 +79,33 @@ func RegisterRoutes(mux interface{}) {
   }
 }`
 		},
-		"app/web/frontend/.env":           func() string { return `` },
-		"app/web/frontend/.env.dev":       func() string { return `` },
-		"app/web/frontend/robots.txt":     func() string { return `` },
-		"app/web/frontend/vite.config.js": func() string { return `` },
-		"app/web/public/index.html":       func() string { return `` },
-		"app/web/frontend/README.md":      func() string { return `` },
-		"app/web/README.md":               func() string { return `` },
-		"app/web/frontend/index.html":     func() string { return `` },
+		"app/web/frontend/.env":            func() string { return `` },
+		"app/web/frontend/.env.dev":        func() string { return `` },
+		"app/web/frontend/robots.txt":      func() string { return `` },
+		"app/web/frontend/vite.config.js":  func() string { return `` },
+		"app/web/public/index.html":        func() string { return `` },
+		"app/web/frontend/README.md":       func() string { return `` },
+		"app/web/README.md":                func() string { return `` },
+		"app/web/frontend/src/index.html":  func() string { return `` },
+		"app/web/frontend/dist/index.html": func() string { return `` },
+		"app/web/frontend/dist/main.js":    func() string { return `` },
+		"app/web/frontend/dist/style.css":  func() string { return `` },
 		"app/web/frontend/pages/signin.templ": func() string {
 			return `package signin
 		templ Signin(){
 		}
 		`
 		},
-		"app/web/frontend/pages/signup.templ": func() string {
+		"app/web/frontend/src/pages/signup.templ": func() string {
 			return `package signup
 		templ Signup(){
 		}
 		`
 		},
-		"app/web/frontend/assets/css/style.css": func() string {
+		"app/web/frontend/src/assets/css/style.css": func() string {
 			return ``
 		},
-		"app/web/frontend/assets/js/index.js": func() string {
+		"app/web/frontend/src/assets/js/index.js": func() string {
 			return ``
 		},
 		"app/web/frontend/components/index.js": func() string { return `` },
@@ -133,19 +136,22 @@ func RegisterRoutes(mux interface{}) {
 		"app/web/backend/.env.dev":       func() string { return `` },
 		"app/web/backend/robots.txt":     func() string { return `` },
 		"app/web/backend/README.md":      func() string { return `` },
-		"app/web/backend/assets/css/style.css": func() string {
+		"app/web/backend/src/assets/css/style.css": func() string {
 			return ``
 		},
-		"app/web/backend/assets/js/index.js": func() string {
+		"app/web/backend/src/assets/js/index.js": func() string {
 			return ``
 		},
-		"app/web/backend/components/index.js": func() string { return `` },
-		"app/web/backend/pages/index.js":      func() string { return `` },
-		"app/web/backend/store/index.js":      func() string { return `` },
-		"app/web/backend/index.html":          func() string { return `` },
-		"app/web/backend/signin.html":         func() string { return `` },
-		"app/web/backend/signup.html":         func() string { return `` },
-		"app/web/components/head.templ": func() string {
+		"app/web/backend/src/components/index.js": func() string { return `` },
+		"app/web/backend/src/pages/index.js":      func() string { return `` },
+		"app/web/backend/src/store/index.js":      func() string { return `` },
+		"app/web/backend/src/index.html":          func() string { return `` },
+		"app/web/backend/dist/index.html":         func() string { return `` },
+		"app/web/backend/dist/main.js":            func() string { return `` },
+		"app/web/backend/dist/style.css":          func() string { return `` },
+		"app/web/backend/src/pages/signin.html":   func() string { return `` },
+		"app/web/backend/src/pages/signup.html":   func() string { return `` },
+		"app/web/backend/components/head.templ": func() string {
 			return `package head
 
 templ Head(title, css, js){
@@ -166,7 +172,7 @@ templ Head(title, css, js){
 }
 `
 		},
-		"app/web/layouts/base.templ": func() string {
+		"app/web/backend/layouts/base.templ": func() string {
 			return `package layouts
 
 import "{{.AppName}}/app/views"
@@ -183,7 +189,7 @@ templ Base(title, css, js string){
 }
 `
 		},
-		"app/web/layouts/app.templ": func() string {
+		"app/web/backend/layouts/app.templ": func() string {
 			return `package layouts
 
 var (
@@ -200,7 +206,7 @@ templ App() {
 }
 `
 		},
-		"app/web/components/header/header.templ": func() string {
+		"app/web/backend/components/header/header.templ": func() string {
 			return `package components
 
 templ Header(){
@@ -210,7 +216,7 @@ templ Header(){
 }
 `
 		},
-		"app/web/components/footer/footer.templ": func() string {
+		"app/web/backend/components/footer/footer.templ": func() string {
 			return `package components
 
 templ Footer(){
@@ -220,7 +226,7 @@ templ Footer(){
 }
 `
 		},
-		"app/web/pages/home.templ": func() string {
+		"app/web/backend/pages/home.templ": func() string {
 			return `package pages
 
 templ Home(){
@@ -229,7 +235,7 @@ templ Home(){
 }
 `
 		},
-		"app/web/pages/about.templ": func() string {
+		"app/web/backend/pages/about.templ": func() string {
 			return `package pages
 
 templ About(){
@@ -238,7 +244,7 @@ templ About(){
 }
 `
 		},
-		"app/web/components/navigation/sidebar.templ": func() string {
+		"app/web/backend/components/navigation/sidebar.templ": func() string {
 			return `package navigation
 
 templ Sidebar(){
@@ -252,7 +258,7 @@ templ Sidebar(){
 }
 `
 		},
-		"app/web/views.go": func() string {
+		"app/web/backend/views.go": func() string {
 			return `package views
 
 import (
@@ -282,7 +288,7 @@ func Asset(fileName string) ([]byte, error) {
 }
 `
 		},
-		"app/web/errors/404.templ": func() string {
+		"app/web/shared/errors/404.templ": func() string {
 			return `package errors
 
 templ _404(){
