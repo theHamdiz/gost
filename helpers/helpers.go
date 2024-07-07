@@ -236,7 +236,7 @@ func installFrameworks(projectDir string) error {
 
 	err := installHtmx(projectDir)
 	if err != nil {
-		fmt.Printf(clr.Colorize("Error installing htmx: %s\n", "red"), "red")
+		fmt.Printf(clr.Colorize("Error installing htmx: %s\n", "red"), err)
 	}
 
 	err = installAir(projectDir)
@@ -797,33 +797,18 @@ func generateProject(config *cfg.GostConfig) {
 		ProjectData.BackendImport = "github.com/gin-gonic/gin"
 		ProjectData.BackendInit = "gin.Default()"
 		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, getLatestGoPackageVersion("github.com/gin-gonic/gin"))
-		// err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
-		// if err != nil {
-		// 	fmt.Printf("Error running go get: %+v\n", err)
-		// 	return
-		// }
 		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	case "chi":
 		ProjectData.BackendImport = "github.com/go-chi/chi/v5"
 		ProjectData.BackendPkg = "chi"
 		ProjectData.BackendInit = "chi.NewRouter()"
 		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, getLatestGoPackageVersion("github.com/go-chi/chi/v5"))
-		// err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
-		// if err != nil {
-		// 	fmt.Println("Error running go get:", err)
-		// 	return
-		// }
 		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	case "echo":
 		ProjectData.BackendImport = "github.com/labstack/echo/v5"
 		ProjectData.BackendPkg = "echo"
 		ProjectData.BackendInit = "echo.New()"
 		ProjectData.VersionedBackendImport = fmt.Sprintf("%s@%s", ProjectData.BackendImport, "v5.0.0-20230722203903-ec5b858dab61")
-		// err := runner.RunCommand("go", "get", ProjectData.VersionedBackendImport)
-		// if err != nil {
-		// 	fmt.Println("Error running go get:", err)
-		// 	return
-		// }
 		ProjectData.VersionedBackendImport = strings.Replace(ProjectData.VersionedBackendImport, "@", " ", 1)
 	default:
 		log.Fatalf("Unsupported backend framework: %s", config.PreferredBackendFramework)
@@ -847,9 +832,12 @@ func generateProject(config *cfg.GostConfig) {
 		fmt.Println(err)
 	}
 
-	err = installFrameworks(ProjectData.ProjectDir)
+	frontEndDir := filepath.Join(ProjectData.ProjectDir, "app/web/frontend/")
+	backendDir := filepath.Join(ProjectData.ProjectDir, "app/web/backend/")
+
+	err = installFrameworks(frontEndDir)
 	if err != nil {
-		err = setupFrameworks(ProjectData.ProjectDir)
+		err = setupFrameworks(frontEndDir)
 		if err != nil {
 			fmt.Println(clr.Colorize("Could not install UI or Components frameworks using either npm or direct download, maybe check your internet connection!", "red"))
 		}
@@ -861,12 +849,12 @@ func generateProject(config *cfg.GostConfig) {
 		if err == nil {
 			contentStr := tailwind.GetContentConfigForComponentFramework(ProjectData.ComponentsFramework)
 			if contentStr != "" {
-				_ = tailwind.AppendToTailwindConfig(filepath.Join(ProjectData.ProjectDir, "tailwind.config.js"), "content", contentStr)
+				_ = tailwind.AppendToTailwindConfig(filepath.Join(frontEndDir, "tailwind.config.js"), "content", contentStr)
 			}
 
 			pluginStr := tailwind.GetContentConfigForComponentFramework(ProjectData.ComponentsFramework)
 			if pluginStr != "" {
-				_ = tailwind.AppendToTailwindConfig(filepath.Join(ProjectData.ProjectDir, "tailwind.config.js"), "plugins", pluginStr)
+				_ = tailwind.AppendToTailwindConfig(filepath.Join(frontEndDir, "tailwind.config.js"), "plugins", pluginStr)
 			}
 		}
 	}
@@ -912,8 +900,8 @@ func generateProject(config *cfg.GostConfig) {
 		defer wg.Done()
 		var cmdDirs []string
 		if cmd[0] == "npm" {
-			cmdDirs = append(cmdDirs, filepath.Join(ProjectData.ProjectDir, "web/frontend"))
-			cmdDirs = append(cmdDirs, filepath.Join(ProjectData.ProjectDir, "web/backend"))
+			cmdDirs = append(cmdDirs, frontEndDir)
+			cmdDirs = append(cmdDirs, backendDir)
 		} else {
 			cmdDirs = append(cmdDirs, ProjectData.ProjectDir)
 		}

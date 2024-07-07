@@ -54,8 +54,6 @@ func waitForShutdown() {
 }
 
 func main() {
-    
-
     log.Println("Server starting on port", cfg.Port)
     go func() {
         {{- if eq .BackendPkg "gin" }}

@@ -13,22 +13,22 @@ type GenScriptsPlugin struct {
 func (g *GenScriptsPlugin) Init() error {
 	// Initialize Files
 	g.Files = map[string]func() string{
-		"scripts/setup.sh": func() string {
+		"cmd/scripts/setup.sh": func() string {
 			return ``
 		},
-		"scripts/migrate.sh": func() string {
+		"cmd/scripts/migrate.sh": func() string {
 			return ``
 		},
-		"scripts/deploy.sh": func() string {
+		"cmd/scripts/deploy.sh": func() string {
 			return ``
 		},
-		"scripts/backup.sh": func() string {
+		"cmd/scripts/backup.sh": func() string {
 			return ``
 		},
-		"scripts/cleanup.sh": func() string {
+		"cmd/scripts/cleanup.sh": func() string {
 			return ``
 		},
-		"scripts/gendocs.sh": func() string {
+		"cmd/scripts/gendocs.sh": func() string {
 			return ``
 		},
 	}
@@ -77,7 +77,7 @@ func (g *GenScriptsPlugin) Generate(data config.ProjectData) error {
 	return general.GenerateFiles(data, g.Files)
 }
 
-func NewGenServicesPlugin(data config.ProjectData) *GenScriptsPlugin {
+func NewGenScriptsPlugin(data config.ProjectData) *GenScriptsPlugin {
 	return &GenScriptsPlugin{
 		Data: data,
 	}

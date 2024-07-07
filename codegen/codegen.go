@@ -12,6 +12,7 @@ import (
 	"github.com/theHamdiz/gost/codegen/middleware"
 	genPlugins "github.com/theHamdiz/gost/codegen/plugins"
 	"github.com/theHamdiz/gost/codegen/router"
+	"github.com/theHamdiz/gost/codegen/scripts"
 	"github.com/theHamdiz/gost/codegen/services"
 	"github.com/theHamdiz/gost/codegen/types"
 	"github.com/theHamdiz/gost/codegen/web"
@@ -33,6 +34,7 @@ func ExecuteGeneration(data config.ProjectData) error {
 		router.NewGenRouterPlugin(data),
 		services.NewGenServicesPlugin(data),
 		types.NewGenTypesPlugin(data),
+		scripts.NewGenScriptsPlugin(data),
 		web.NewGenUiPlugin(data),
 	}
 
